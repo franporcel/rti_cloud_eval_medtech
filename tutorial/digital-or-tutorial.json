@@ -1,0 +1,181 @@
+{
+  "id": "digital-operating-room",
+  "title": "Digital Operating Room",
+  "subtitle": "See how Connext powers safe, interoperable, data-centric medical devices",
+  "sourceRepo": "https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture",
+  "sourceModule": "modules/01-operating-room",
+  "workspaceIntro": {
+    "heading": "Digital Operating Room",
+    "summary": "This example shows how RTI Connext connects the devices in a modern operating room \u2014 patient monitors, a surgical robotic arm, and a central orchestrator \u2014 using the same data-centric publish-subscribe model you've already learned, applied to a real medical device architecture.",
+    "youWillLearn": [
+      "How a single data-centric architecture (defined once, in XML) connects heterogeneous devices written in different languages (C++ and Python)",
+      "How Connext QoS policies (Deadline, Reliability, Content Filters) map directly to patient-safety requirements",
+      "How to detect a failed or disconnected medical device in real time, without any custom heartbeat code",
+      "How to observe and safely control a live system of interacting medical devices"
+    ]
+  },
+  "steps": [
+    {
+      "number": 1,
+      "title": "Introduction",
+      "body": [
+        "Connext lets every device in a medical system share data by publishing and subscribing to well-defined Topics \u2014 the same pattern you saw in the Publish-Subscribe tutorial, now applied to a safety-critical environment.",
+        "In a real hospital, an operating room is a network of independent devices \u2014 vitals monitors, surgical robots, infusion pumps \u2014 built by different vendors, on different platforms, that must interoperate reliably. RTI Connext is designed exactly for this problem."
+      ],
+      "background": [
+        "The MedTech Reference Architecture defines all system Data Types, QoS, Domains, and Topics once in XML, separate from application code and language.",
+        "Applications discover each other automatically and exchange data peer-to-peer \u2014 no broker, no single point of failure.",
+        "The same architecture scales from a single-machine demo to devices distributed across a hospital network."
+      ],
+      "whatWellBuild": {
+        "description": "We'll run a simulated Digital Operating Room with 5 interactive applications:",
+        "items": [
+          "Patient Sensor \u2014 publishes simulated patient vitals",
+          "Patient Monitor \u2014 subscribes to vitals and displays a live waveform",
+          "Arm \u2014 a simulated 5-motor surgical robot arm",
+          "Arm Controller \u2014 sends motor commands and shows system alerts",
+          "Orchestrator \u2014 monitors every device's health and can start/stop devices remotely"
+        ]
+      },
+      "note": "This workspace runs everything on a single machine for simplicity, but Connext works identically across a real hospital network, across operating systems, and across vendors."
+    },
+    {
+      "number": 2,
+      "title": "Explore the System Architecture",
+      "body": [
+        "Just like the DeviceStatus type in the Publish-Subscribe tutorial, every piece of data exchanged in the operating room is described by a structured Data Type, defined once in XML."
+      ],
+      "openFiles": [
+        "system_arch/Types.xml",
+        "system_arch/qos/Qos.xml",
+        "system_arch/xml_app_creation/ParticipantLibrary.xml"
+      ],
+      "highlights": [
+        "Vitals \u2014 a patient's collected vital signs (heart rate, blood pressure, SpO2, ...)",
+        "MotorControl \u2014 commands the direction of motion for an arm motor (Base, Shoulder, Elbow, Wrist, Hand)",
+        "DeviceStatus / DeviceHeartbeat \u2014 the current state and liveliness of any device in the room",
+        "DeviceCommand \u2014 remote commands such as START, PAUSE, SHUTDOWN sent to a specific device"
+      ],
+      "keyTakeaway": "Because these types, QoS, and participant configurations are defined in XML \u2014 not hard-coded per application \u2014 a systems architect can change system behavior (e.g. reliability, filtering) without touching a single line of C++ or Python."
+    },
+    {
+      "number": 3,
+      "title": "Explore the Patient Vitals Data Flow",
+      "body": [
+        "The Patient Sensor simulates a bedside monitor publishing vitals. The Patient Monitor subscribes to the same Topic and renders a live waveform \u2014 exactly the publish/subscribe pattern from the first tutorial, now carrying real medical telemetry."
+      ],
+      "openFiles": [
+        "modules/01-operating-room/src/PatientSensor.cxx",
+        "modules/01-operating-room/src/PatientMonitor.py"
+      ],
+      "highlight": "Notice that the publisher is written in C++ and the subscriber in Python \u2014 they interoperate seamlessly because they share the same Connext data type, generated once from Types.xml."
+    },
+    {
+      "number": 4,
+      "title": "Explore the Surgical Arm Control Flow",
+      "body": [
+        "The Arm Controller sends motor-movement commands; the Arm application receives them and animates 5 simulated motors. This models the safety-critical command path between a surgeon's console and a robotic instrument."
+      ],
+      "openFiles": [
+        "modules/01-operating-room/src/ArmController.cxx",
+        "modules/01-operating-room/src/Arm.py"
+      ],
+      "highlight": "In a real surgical robot, this command path has hard real-time and reliability requirements \u2014 exactly what Connext QoS is designed to guarantee (see Step 7)."
+    },
+    {
+      "number": 5,
+      "title": "Explore the Orchestrator",
+      "body": [
+        "The Orchestrator is the room's system supervisor. It watches every device's DeviceHeartbeat and DeviceStatus, and can issue DeviceCommands (START, PAUSE, SHUTDOWN) to any device by name."
+      ],
+      "openFiles": [
+        "modules/01-operating-room/src/Orchestrator.cxx"
+      ],
+      "highlight": "This is the pattern behind hospital-wide device management: one application can supervise many independent, vendor-built devices without any of them needing custom integration code."
+    },
+    {
+      "number": 6,
+      "title": "Build & Run the Digital Operating Room",
+      "body": [
+        "This module mixes C++ and Python applications, so it needs a one-time build step before you run it (unlike the pure-Python Publish-Subscribe example)."
+      ],
+      "terminals": [
+        {
+          "name": "Setup",
+          "commands": [
+            "source $NDDSHOME/resource/scripts/rtisetenv_<your_arch>.bash",
+            "python3 -m venv .venv && source .venv/bin/activate",
+            "pip install -r requirements.txt",
+            "pip install rti.connext.activated -f $NDDSHOME/resource/python_api"
+          ]
+        },
+        {
+          "name": "Build",
+          "commands": ["python3 build.py"]
+        },
+        {
+          "name": "Run",
+          "commands": ["python3 launch.py 01-operating-room"]
+        }
+      ],
+      "expectedResult": "5 application windows open: Patient Monitor (live vitals waveform), Arm (motor angles plot), Arm Controller (motor buttons + alerts), and Orchestrator (device status + alerts). Patient Sensor runs headless in the terminal.",
+      "tryThis": [
+        "From the Orchestrator, send a PAUSE command to the Patient Sensor. Watch the Patient Monitor waveform flatten, then resume it with START.",
+        "From the Arm Controller, stop all motors, then resume just the Elbow motor and nudge the Wrist with the +/- buttons.",
+        "Close the Arm window abruptly (not via a command) and watch the Orchestrator's Alerts panel flag it immediately."
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Configure Patient-Safety QoS",
+      "body": [
+        "Just like the Reliable QoS step in the Publish-Subscribe tutorial, this system relies on QoS policies \u2014 not application code \u2014 to guarantee safety-critical behavior."
+      ],
+      "openFiles": ["system_arch/qos/Qos.xml"],
+      "highlights": [
+        "Deadline QoS on t/DeviceHeartbeat (200 ms) \u2014 the Orchestrator is notified the instant a device stops responding, with zero custom timeout code.",
+        "StrictReliable QoS \u2014 no vitals or motor commands are ever silently dropped.",
+        "Content-Filtered Topics on t/DeviceCommand \u2014 each device only receives commands addressed to it, using a single shared Topic."
+      ],
+      "tryThis": [
+        "Increase the Heartbeat Deadline period to 5 seconds, relaunch, close the Patient Monitor window, and observe the Orchestrator now takes 5 seconds (instead of ~200ms) to flag it as offline.",
+        "Comment out the <content_filter> for dr/DeviceCommand under dp/PatientMonitor in ParticipantLibrary.xml, relaunch, and send a Shut Down command to only the Arm Controller \u2014 notice the Patient Monitor also shuts down, because it's no longer filtering commands meant for other devices."
+      ],
+      "keyTakeaway": "These are the exact QoS levers a systems engineer tunes to move from a lab prototype to a certifiable, patient-safe deployment \u2014 without changing application code."
+    },
+    {
+      "number": 8,
+      "title": "Observe the System with RTI Tools",
+      "body": [
+        "Because Connext is data-centric, tools can introspect your running system without any custom code."
+      ],
+      "actions": [
+        "Open RTI Admin Console or System Designer and connect to the running Domain to see every DomainParticipant, Topic, DataWriter, and DataReader in the Digital Operating Room.",
+        "Open system_arch/RefArch.rtisdproj in RTI System Designer to see the full architecture (all 4 modules) as a single diagram."
+      ],
+      "cloudEvalNote": "In the cloud eval workspace, this step should reuse the same 'Visualize System' and 'Create View with AI' actions from the Publish-Subscribe tutorial, pointed at the DeviceStatus/Vitals/MotorControl topics (e.g. an AI-generated Operating Room Dashboard card per device)."
+    },
+    {
+      "number": 9,
+      "title": "Simulate a Real-World Failure",
+      "body": [
+        "Ungracefully terminate the Arm application (close its window directly, not via command) while watching the Orchestrator's Alerts panel.",
+        "Then initiate a graceful remote shutdown of the Arm Controller from the Orchestrator, and observe the clean shutdown versus the ungraceful one."
+      ],
+      "keyTakeaway": "This is the core sales message for healthcare buyers: Connext turns device failure detection and safe shutdown into a QoS-and-architecture concern, not bespoke integration code per device vendor."
+    },
+    {
+      "number": 10,
+      "title": "Next Steps",
+      "body": [
+        "Congratulations! You've seen how the fundamentals from the Publish-Subscribe tutorial \u2014 Topics, data types, QoS \u2014 scale up to a real, safety-critical medical device architecture."
+      ],
+      "links": [
+        { "label": "Module 02: RTI Recording Service & Replay Service", "description": "Record and replay real device data for post-incident analysis or regression testing" },
+        { "label": "Module 03: Remote Teleoperation with Real-Time WAN Transport", "description": "Extend this same architecture across a hospital's Wide Area Network" },
+        { "label": "Module 04: Security Threat Demonstration", "description": "See how DDS Security protects the operating room from a live attack scenario" }
+      ],
+      "callToAction": "Ready to build your own connected medical device? Install Connext to get the SDK, design & debug tools, and infrastructure services for recording, bridging, and securing your data."
+    }
+  ]
+}
