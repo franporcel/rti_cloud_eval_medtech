@@ -53,12 +53,18 @@ source "$REPO_DIR/.venv/bin/activate"
 cleanup() {
   echo
   echo "Shutting down Digital Operating Room..."
+  if [[ -n "${GUI_PID:-}" ]] && kill -0 "$GUI_PID" 2>/dev/null; then
+    kill -TERM "$GUI_PID" 2>/dev/null || true
+    wait "$GUI_PID" 2>/dev/null || true
+  fi
   if [[ -n "${DEMO_PID:-}" ]] && kill -0 "$DEMO_PID" 2>/dev/null; then
     pkill -TERM -P "$DEMO_PID" 2>/dev/null || kill "$DEMO_PID" 2>/dev/null || true
     wait "$DEMO_PID" 2>/dev/null || true
   fi
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 echo "Starting Digital Operating Room demo in the background..."
 "$SCRIPT_DIR/run_digital_or.sh" --launch-only "${launch_args[@]}" &
@@ -66,7 +72,8 @@ DEMO_PID=$!
 
 echo "Starting Tutorial GUI..."
 cd "$SCRIPT_DIR"
-python3 tutorial_gui.py
+python3 tutorial_gui.py &
+GUI_PID=$!
 
-# When the Tutorial GUI window is closed, fall through to cleanup via the trap.
-wait "$DEMO_PID" 2>/dev/null || true
+# Closing the tutorial or interrupting this wait triggers cleanup of both apps.
+wait "$GUI_PID"
