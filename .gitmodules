@@ -1,0 +1,3 @@
+[submodule "medtech-reference-architecture"]
+	path = medtech-reference-architecture
+	url = https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture.git

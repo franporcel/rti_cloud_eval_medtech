@@ -51,6 +51,16 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
 This sources your local Connext 7.7 environment, creates/activates a venv, builds the C++ and
 Python type support, and launches all 5 Digital Operating Room applications as native windows.
 
+To open the four visual applications in VS Code editor tabs instead, install the bundled
+[MedTech Web Tabs extension](../medtech-reference-architecture/vscode-extension/README.md)
+and run:
+
+```bash
+./run_digital_or.sh --vscode
+```
+
+PatientSensor remains a background process. Add `--secure` to either command to enable Security.
+
 ## Guided tutorial GUI
 
 ```bash
