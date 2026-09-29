@@ -50,6 +50,10 @@ fi
 "$SCRIPT_DIR/run_digital_or.sh" --setup-only
 source "$REPO_DIR/.venv/bin/activate"
 
+if [[ "${launch_args[0]:-}" == --vscode ]]; then
+  "$code_cli" "$ROOT_DIR"
+fi
+
 cleanup() {
   echo
   echo "Shutting down Digital Operating Room..."
