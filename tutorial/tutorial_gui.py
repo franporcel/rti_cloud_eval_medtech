@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Super simple guided-tutorial GUI, driven entirely by digital-or-tutorial.json.
+"""Guided-tutorial GUI, driven by digital-or-tutorial.json.
 
 Renders each step (title/body/openFiles/terminals/highlights/tryThis/links/...) with
 Previous/Next navigation, "Open File" buttons (via VS Code CLI, falling back to `open`),
@@ -10,17 +10,25 @@ Usage:
 """
 from __future__ import annotations
 
+import errno
 import json
+import os
 import platform
 import shutil
+import signal
+import socket
 import subprocess
 import sys
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSocketNotifier, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -36,6 +44,20 @@ from PySide6.QtWidgets import (
 TUTORIAL_DIR = Path(__file__).resolve().parent
 JSON_PATH = TUTORIAL_DIR / "digital-or-tutorial.json"
 REPO_ROOT = TUTORIAL_DIR / ".." / "medtech-reference-architecture"
+APP_PORTS = {"ArmController": 8091, "Orchestrator": 8090, "Arm": 8092, "PatientMonitor": 8093}
+
+
+def app_running(port: int) -> bool | None:
+    try:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(f"http://127.0.0.1:{port}/api/state", timeout=0.15):
+            return True
+    except urllib.error.HTTPError:
+        return True
+    except urllib.error.URLError as exc:
+        return False if getattr(exc.reason, "errno", None) == errno.ECONNREFUSED else None
+    except OSError:
+        return None
 
 
 def load_tutorial() -> dict:
@@ -224,6 +246,20 @@ class TutorialWindow(QMainWindow):
         scroll.setWidget(self.step_view)
         right_layout.addWidget(scroll)
 
+        self.app_buttons = {}
+        self.restarted_apps: dict[str, subprocess.Popen] = {}
+        self.startup_deadline = time.monotonic() + 15 if os.environ.get("MEDTECH_DEMO_STARTING") else 0
+        self.seen_apps: set[str] = set()
+        if os.environ.get("MEDTECH_UI_MODE", "--vscode") == "--vscode":
+            restore_layout = QGridLayout()
+            for index, (name, port) in enumerate(APP_PORTS.items()):
+                button = QPushButton(f"Restore {name}")
+                button.setToolTip(f"Restart {name} and reopen its tab after the app stops")
+                button.clicked.connect(lambda _checked=False, app=name: self.restore_app(app))
+                restore_layout.addWidget(button, index // 2, index % 2)
+                self.app_buttons[name] = button
+            right_layout.addLayout(restore_layout)
+
         nav_layout = QHBoxLayout()
         self.prev_btn = QPushButton("\u25C0 Previous")
         self.prev_btn.clicked.connect(self.go_previous)
@@ -237,6 +273,54 @@ class TutorialWindow(QMainWindow):
         root_layout.addWidget(right_container)
 
         self.step_list.setCurrentRow(0)
+        if self.app_buttons:
+            self.status_timer = QTimer(self)
+            self.status_timer.timeout.connect(self.update_app_buttons)
+            self.status_timer.start(1500)
+            self.update_app_buttons()
+
+    def update_app_buttons(self) -> None:
+        for name, port in APP_PORTS.items():
+            running = app_running(port)
+            if running is True:
+                self.seen_apps.add(name)
+            starting = self.restarted_apps.get(name)
+            pending = starting is not None and starting.poll() is None and not running
+            booting = name not in self.seen_apps and time.monotonic() < self.startup_deadline
+            self.app_buttons[name].setEnabled(
+                not pending and not booting and running is False
+            )
+
+    def restore_app(self, name: str) -> None:
+        port = APP_PORTS[name]
+        running = app_running(port)
+        if running is not False:
+            self.update_app_buttons()
+            return
+        starting = self.restarted_apps.get(name)
+        if starting is not None and starting.poll() is None:
+            return
+        try:
+            arguments = [str(TUTORIAL_DIR / "run_digital_or.sh"), "--launch-only", name, "--vscode"]
+            if os.environ.get("MEDTECH_SECURITY") == "1":
+                arguments.append("--secure")
+            self.restarted_apps[name] = subprocess.Popen(
+                arguments,
+                cwd=TUTORIAL_DIR.parent,
+                start_new_session=True,
+            )
+        except OSError as exc:
+            QMessageBox.warning(self, "Unable to restore app", str(exc))
+        self.update_app_buttons()
+
+    def closeEvent(self, event) -> None:
+        for process in self.restarted_apps.values():
+            if process.poll() is None:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+        super().closeEvent(event)
 
     def go_to_step(self, index: int) -> None:
         if index < 0 or index >= len(self.steps):
@@ -257,8 +341,21 @@ def main() -> None:
     tutorial = load_tutorial()
     app = QApplication(sys.argv)
     window = TutorialWindow(tutorial)
+    read_signal, write_signal = socket.socketpair()
+    write_signal.setblocking(False)
+    previous_wakeup = signal.set_wakeup_fd(write_signal.fileno())
+    previous_handler = signal.signal(signal.SIGTERM, lambda _signum, _frame: None)
+    notifier = QSocketNotifier(read_signal.fileno(), QSocketNotifier.Read, window)
+    notifier.activated.connect(lambda _fd: window.close())
     window.show()
-    sys.exit(app.exec())
+    try:
+        exit_code = app.exec()
+    finally:
+        signal.set_wakeup_fd(previous_wakeup)
+        signal.signal(signal.SIGTERM, previous_handler)
+        read_signal.close()
+        write_signal.close()
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -8,14 +8,36 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_DIR="$ROOT_DIR/medtech-reference-architecture"
 launch_args=(--vscode)
+ui_mode=--vscode
+export MEDTECH_SECURITY=0
 for arg in "$@"; do
   case "$arg" in
-    --secure) launch_args+=(--secure) ;;
-    --web) launch_args=(--web "${launch_args[@]:1}") ;;
-    --native) launch_args=("${launch_args[@]:1}") ;;
+    --secure) launch_args+=(--secure); export MEDTECH_SECURITY=1 ;;
+    --web) launch_args=(--web "${launch_args[@]:1}"); ui_mode=--web ;;
+    --native) launch_args=("${launch_args[@]:1}"); ui_mode=--native ;;
     *) echo "error: unknown option $arg" >&2; exit 2 ;;
   esac
 done
+export MEDTECH_UI_MODE="$ui_mode"
+
+if [[ "$ui_mode" != --native ]]; then
+  python3 - <<'PY'
+import socket
+
+busy = []
+for name, port in (("Orchestrator", 8090), ("Arm Controller", 8091),
+                   ("Arm", 8092), ("Patient Monitor", 8093)):
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=0.2):
+            busy.append(f"{name} ({port})")
+    except OSError:
+        pass
+
+if busy:
+    raise SystemExit("error: demo ports already in use: " + ", ".join(busy)
+                     + ". Stop the existing demo before launching another one.")
+PY
+fi
 
 expected_commit=$(git -C "$ROOT_DIR" rev-parse :medtech-reference-architecture)
 if [[ -e "$REPO_DIR/.git" ]]; then
@@ -76,6 +98,7 @@ DEMO_PID=$!
 
 echo "Starting Tutorial GUI..."
 cd "$SCRIPT_DIR"
+export MEDTECH_DEMO_STARTING=1
 python3 tutorial_gui.py &
 GUI_PID=$!
 

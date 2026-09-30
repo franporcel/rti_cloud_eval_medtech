@@ -1,20 +1,24 @@
 # Integration Notes: Digital Operating Room → Cloud Eval
 
-Open items to resolve before this tutorial can become a real `evaluation.rti.com` workspace
-template, based on what was verified while building this draft.
+Open items to resolve before this locally working demo can become a real `evaluation.rti.com`
+workspace template. The web-tab experience has been verified in local desktop VS Code on macOS,
+not in the hosted browser-based workspace.
 
-## 1. GUI applications need a display in the browser sandbox
+## 1. Validate web tabs and tutorial UI in the browser sandbox
 
 Existing cloud eval templates (Publish-Subscribe, RPC, Last-Value Cache, Content Filtering,
 Sandbox) are all **console-only** Python scripts run in the IDE's integrated terminal — no
-GUI. The Digital Operating Room's 5 applications open **native GUI windows** (Tkinter/PyQt
-plots for Patient Monitor and Arm; GTK windows for Arm Controller and Orchestrator).
+GUI. The default local Digital Operating Room launch uses four HTTP web UIs (Patient Monitor,
+Arm, Arm Controller, Orchestrator) in VS Code web tabs, plus a headless Patient Sensor. Native
+windows remain an optional `--native` mode.
 
-Decision (per stakeholder): keep the real GUI apps rather than building a simplified
-console-only variant. For the cloud sandbox, this means the workspace container will need a
-VNC/noVNC (or similar browser-embeddable X server) setup so these windows are visible/clickable
-in-browser — this is new infrastructure relative to the existing templates and should be
-scoped as its own platform work item.
+The bundled MedTech Web Tabs extension opens `localhost` HTTP pages inside a VS Code webview;
+the local launcher dispatches `vscode://` URIs to desktop VS Code. Check whether the hosted
+extension host can load this extension, forward each of ports 8090–8093 into the webview, and
+open the four tabs without desktop URI handling. The guided `tutorial_gui.py` is a separate
+PySide6 desktop window: either integrate the JSON steps into the hosted Connext Studio panel
+or provide a browser-accessible display for that window. Neither route has been validated
+in the hosted workspace.
 
 ## 2. Full licensed Connext install + native build, not just `pip install rti.connext`
 
@@ -37,24 +41,21 @@ promise of the existing cloud eval templates.
 ## 3. Confirmed working locally (macOS, arm64)
 
 ```bash
-source /Applications/rti_connext_dds-7.7.0/resource/scripts/rtisetenv_arm64Darwin23clang16.0.zsh
-cd medtech-reference-architecture
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pip install rti.connext.activated -f $NDDSHOME/resource/python_api
-python3 build.py
-python3 launch.py 01-operating-room
+git clone --recurse-submodules ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git
+cd cloud_eval_medical
+./tutorial/launch_all.sh
 ```
 
-All 5 applications (PatientSensor, PatientMonitor, Arm, ArmController, Orchestrator) started
-cleanly with no errors after the full build.
+The launcher detects the local Connext 7.7 install, builds the project, and starts all five
+applications: four VS Code web tabs and a headless Patient Sensor, alongside the tutorial GUI.
+This local result does not establish hosted template compatibility.
 
 ## 4. Recommendation for a phased rollout
 
-1. **Now:** use `run_digital_or.sh` for local, in-person/screen-share demos to stakeholders.
-2. **Next:** platform team evaluates VNC/noVNC feasibility in the existing workspace container
-   image, and decides whether to pre-bake a licensed, pre-built Connext 7.7 image for this
-   template (recommended) vs. requiring per-session build.
+1. **Now:** use `./tutorial/launch_all.sh` for local, in-person/screen-share demos to stakeholders.
+2. **Next:** validate webview port forwarding, extension installation, and tab opening in the
+   hosted workspace; decide how to present the tutorial steps there. Pre-bake a licensed,
+   pre-built Connext 7.7 image or measure whether per-session builds are acceptable.
 3. **Then:** wire `digital-or-tutorial.json`'s 10 steps into "Connext Studio" as a new
-   workspace template, reusing the existing "open file" / "run in named terminal" /
-   "Visualize System" / "Create View with AI" actions already built for Publish-Subscribe.
+   workspace template, reusing the existing "open file" / "Visualize System" /
+   "Create View with AI" actions already built for Publish-Subscribe.

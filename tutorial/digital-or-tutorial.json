@@ -95,34 +95,15 @@
     },
     {
       "number": 6,
-      "title": "Build & Run the Digital Operating Room",
+      "title": "Explore the Running Digital Operating Room",
       "body": [
-        "This module mixes C++ and Python applications, so it needs a one-time build step before you run it (unlike the pure-Python Publish-Subscribe example)."
+        "The launch command has already set up, built, and started all five applications. Explore the four web UIs in VS Code tabs; Patient Sensor runs headless. Do not launch a second copy of the demo from this step."
       ],
-      "terminals": [
-        {
-          "name": "Setup",
-          "commands": [
-            "source $NDDSHOME/resource/scripts/rtisetenv_<your_arch>.bash",
-            "python3 -m venv .venv && source .venv/bin/activate",
-            "pip install -r requirements.txt",
-            "pip install rti.connext.activated -f $NDDSHOME/resource/python_api"
-          ]
-        },
-        {
-          "name": "Build",
-          "commands": ["python3 build.py"]
-        },
-        {
-          "name": "Run",
-          "commands": ["python3 launch.py 01-operating-room"]
-        }
-      ],
-      "expectedResult": "5 application windows open: Patient Monitor (live vitals waveform), Arm (motor angles plot), Arm Controller (motor buttons + alerts), and Orchestrator (device status + alerts). Patient Sensor runs headless in the terminal.",
+      "expectedResult": "Four VS Code web tabs show Patient Monitor (live vitals), Arm (motor angles), Arm Controller (motor buttons and alerts), and Orchestrator (device status and alerts). Patient Sensor runs headless in the launch terminal.",
       "tryThis": [
-        "From the Orchestrator, send a PAUSE command to the Patient Sensor. Watch the Patient Monitor waveform flatten, then resume it with START.",
+        "From the Orchestrator, send a PAUSE command to the Patient Sensor. Watch the Patient Monitor pause, then resume it with START.",
         "From the Arm Controller, stop all motors, then resume just the Elbow motor and nudge the Wrist with the +/- buttons.",
-        "Close the Arm window abruptly (not via a command) and watch the Orchestrator's Alerts panel flag it immediately."
+        "From the Orchestrator, send PAUSE to the Arm, then START to resume it. Closing a VS Code device tab kills that app; use its Restore button in the tutorial to restart the device and reopen its tab."
       ]
     },
     {
@@ -138,7 +119,7 @@
         "Content-Filtered Topics on t/DeviceCommand \u2014 each device only receives commands addressed to it, using a single shared Topic."
       ],
       "tryThis": [
-        "Increase the Heartbeat Deadline period to 5 seconds, relaunch, close the Patient Monitor window, and observe the Orchestrator now takes 5 seconds (instead of ~200ms) to flag it as offline.",
+        "Increase the Heartbeat Deadline period to 5 seconds and restart the demo to apply the change. Close the PatientMonitor VS Code tab to kill its process and observe the Orchestrator's offline alert after the new deadline. Use Restore PatientMonitor to restart it afterward.",
         "Comment out the <content_filter> for dr/DeviceCommand under dp/PatientMonitor in ParticipantLibrary.xml, relaunch, and send a Shut Down command to only the Arm Controller \u2014 notice the Patient Monitor also shuts down, because it's no longer filtering commands meant for other devices."
       ],
       "keyTakeaway": "These are the exact QoS levers a systems engineer tunes to move from a lab prototype to a certifiable, patient-safe deployment \u2014 without changing application code."
@@ -159,8 +140,8 @@
       "number": 9,
       "title": "Simulate a Real-World Failure",
       "body": [
-        "Ungracefully terminate the Arm application (close its window directly, not via command) while watching the Orchestrator's Alerts panel.",
-        "Then initiate a graceful remote shutdown of the Arm Controller from the Orchestrator, and observe the clean shutdown versus the ungraceful one."
+        "While watching the Orchestrator's Alerts panel, close the Arm VS Code tab. This kills the Arm process and stops its DDS heartbeats. Wait for the disconnect alert, then use Restore Arm to restart only that device and reopen its tab. Keep the Orchestrator tab open so you can observe the failure and recovery.",
+        "To compare with a graceful stop, send SHUTDOWN to the Arm Controller from the Orchestrator and observe its status change. Use Restore ArmController to bring it back without restarting the entire demo."
       ],
       "keyTakeaway": "This is the core sales message for healthcare buyers: Connext turns device failure detection and safe shutdown into a QoS-and-architecture concern, not bespoke integration code per device vendor."
     },

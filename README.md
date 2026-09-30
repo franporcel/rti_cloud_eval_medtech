@@ -1,6 +1,6 @@
 # Digital Operating Room Cloud Eval Handoff
 
-This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins commit `695a897c8f8507141f6ab36b650504f4e569a9ce` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
+This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins commit `8847f517bdcebff8ccecc908fdbcd0da851fff22` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
 
 ## Dependencies
 
@@ -30,6 +30,6 @@ Use `./tutorial/launch_all.sh --web` to open the applications in browser tabs wi
 
 ## Verify a clean clone
 
-From a fresh clone, run the command above. Check that `git submodule status` reports `695a897c8f8507141f6ab36b650504f4e569a9ce` without a leading `-` or `+`, and that the demo starts with four web UI tabs (Arm Controller, Surgical Arm Monitor, Orchestrator, Patient Monitor), a PatientSensor process, and a tutorial window showing ten steps. The first run downloads dependencies and builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh` to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
+From a fresh clone, run the command above. Check that `git submodule status` reports `8847f517bdcebff8ccecc908fdbcd0da851fff22` without a leading `-` or `+`, and that the demo starts with four web UI tabs (Arm Controller, Surgical Arm Monitor, Orchestrator, Patient Monitor), a PatientSensor process, and a tutorial window showing ten steps. The first run downloads dependencies and builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh` to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
 
 The tutorial's [content and local usage](tutorial/README.md), [cloud integration constraints](tutorial/INTEGRATION_NOTES.md), and [web extension details](medtech-reference-architecture/vscode-extension/README.md) are documented separately. A cloud workspace still needs a licensed Connext image, native build dependencies, a display for the PySide6 tutorial GUI, and a compatible VS Code extension host; this script prepares a local or suitably provisioned workspace, not a hosted evaluation template.

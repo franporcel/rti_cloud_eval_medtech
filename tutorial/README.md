@@ -1,9 +1,9 @@
-# Digital Operating Room — Cloud Eval Tutorial (Draft)
+# Digital Operating Room Tutorial
 
-This folder contains a draft "guided tutorial" for a future **Digital Operating Room**
-workspace on [evaluation.rti.com](https://evaluation.rti.com/workspaces), built from
+This folder contains a locally runnable guided tutorial and the content proposed for a future
+**Digital Operating Room** workspace on [evaluation.rti.com](https://evaluation.rti.com/workspaces), built from
 [rticonnextdds-medtech-reference-architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture),
-Module 01.
+Module 01. Hosted template integration is not yet validated.
 
 It mirrors the structure, tone, and step granularity of the existing **Publish-Subscribe**
 cloud eval tutorial (Introduction → explore code → build/run → configure QoS → observe/visualize →
@@ -12,20 +12,21 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
 ## Files
 
 - **`digital-or-tutorial.json`** — the 10-step tutorial content, in a portable schema
-  (title/body/openFiles/terminals/highlights/etc.) so RTI's cloud eval platform team can
+  (title/body/openFiles/highlights/etc.) so RTI's cloud eval platform team can
   map it onto the same accordion-panel format used by "Connext Studio" without needing to
   re-derive the narrative. This is the primary deliverable.
 - **`INTEGRATION_NOTES.md`** — gaps and decisions the platform team needs to resolve before
-  this can go live in the cloud sandbox (GUI apps, license/build step).
+  this can go live in the cloud sandbox (web tabs, license/build step, tutorial UI).
 - **`../medtech-reference-architecture/`** — a local clone of the source repo, confirmed to
   build and run Module 01 end-to-end (see [INTEGRATION_NOTES.md](./INTEGRATION_NOTES.md)).
-- **`run_digital_or.sh`** — one-command helper to set up, build, and launch the demo locally
-  for showing this to stakeholders before any cloud integration work happens.
-- **`tutorial_gui.py`** — a super-simple standalone PySide6 GUI that reads
+- **`launch_all.sh`** — one-command local setup, build, and launch of the demo in VS Code
+  tabs alongside the guided tutorial GUI.
+- **`run_digital_or.sh`** — helper used by `launch_all.sh`; also supports standalone demos
+  after the submodule is initialized.
+- **`tutorial_gui.py`** — a standalone PySide6 GUI that reads
   `digital-or-tutorial.json` and guides you through all 10 steps with Previous/Next
-  navigation, buttons to open the referenced source files, and buttons to run each step's
-  terminal commands in a new Terminal window. Stand-in for the real "Connext Studio" panel
-  until this is wired into the cloud eval platform.
+  navigation and buttons to open the referenced source files. It runs locally beside the
+  web tabs; it is not the hosted "Connext Studio" panel.
 
 ## How the existing Publish-Subscribe tutorial actually works (verified by logging in)
 
@@ -45,30 +46,36 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
 ## Local demo
 
 ```bash
-./run_digital_or.sh
+git clone --recurse-submodules ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git
+cd cloud_eval_medical
+./tutorial/launch_all.sh
 ```
 
-This sources your local Connext 7.7 environment, creates/activates a venv, builds the C++ and
-Python type support, and launches all 5 Digital Operating Room applications as native windows.
+Run from the repository root with licensed Connext 7.7 installed. The script initializes the
+pinned submodule, prepares a virtual environment, builds C++ and Python type support, and
+starts the four web UIs in VS Code tabs plus a headless Patient Sensor. It opens the tutorial
+GUI alongside them. Closing the tutorial GUI or pressing Ctrl+C in the launch terminal stops
+the demo. In VS Code mode, closing a device tab kills its DDS process so the Orchestrator
+can detect the disconnect. Closing a plain browser tab in `--web` mode does not stop the app.
 
-To open the four visual applications in VS Code editor tabs instead, install the bundled
-[MedTech Web Tabs extension](../medtech-reference-architecture/vscode-extension/README.md)
-and run:
+To use browser tabs instead of VS Code, or native application windows, run:
 
 ```bash
-./run_digital_or.sh --vscode
+./tutorial/launch_all.sh --web
+./tutorial/launch_all.sh --native
 ```
 
-PatientSensor remains a background process. Add `--secure` to either command to enable Security.
+The launcher installs the bundled [MedTech Web Tabs extension](../medtech-reference-architecture/vscode-extension/README.md)
+for the default VS Code mode. Add `--secure` only after generating security artifacts; see the
+[top-level setup guide](../README.md).
 
 ## Guided tutorial GUI
 
-```bash
-pip install PySide6   # one-time, if not already installed
-python3 tutorial_gui.py
-```
-
-Opens a window with a step list on the left (all 10 steps) and the step content on the right,
-including "Open File" buttons (opens in VS Code if `code` is on your `PATH`, else your OS
-default editor) and "Run in New Terminal" buttons for each step's build/run commands. Use it
-side-by-side with `run_digital_or.sh` while walking through the tutorial.
+`launch_all.sh` opens the tutorial automatically. Its "Open File" buttons use VS Code if
+`code` is on your `PATH`, otherwise the OS default editor. The tutorial's web-demo steps
+do not start a second build or launch. In the default VS Code mode, four Restore buttons
+restart stopped apps individually and reopen their VS Code tabs. A button stays disabled
+while its app is running or its health is unknown, and becomes available after the app stops.
+Keep the Orchestrator tab open during failure exercises to see disconnect and recovery alerts. After updating
+the extension, run **Developer: Reload Window** in VS Code and relaunch the demo to load
+the new close handling. Closing the tutorial also stops apps restarted this way.
