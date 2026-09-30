@@ -143,13 +143,13 @@
         "While watching the Orchestrator's Alerts panel, close the Arm VS Code tab. This kills the Arm process and stops its DDS heartbeats. Wait for the disconnect alert, then use Restore Arm to restart only that device and reopen its tab. Keep the Orchestrator tab open so you can observe the failure and recovery.",
         "To compare with a graceful stop, send SHUTDOWN to the Arm Controller from the Orchestrator and observe its status change. Use Restore ArmController to bring it back without restarting the entire demo."
       ],
-      "keyTakeaway": "This is the core sales message for healthcare buyers: Connext turns device failure detection and safe shutdown into a QoS-and-architecture concern, not bespoke integration code per device vendor."
+      "keyTakeaway": "This is one of the key selling points of Connext for healthcare buyers: Connext turns device failure detection and safe shutdown into a QoS-and-architecture concern, not bespoke integration code per device vendor."
     },
     {
       "number": 10,
       "title": "Next Steps",
       "body": [
-        "Congratulations! You've seen how the fundamentals from the Publish-Subscribe tutorial \u2014 Topics, data types, QoS \u2014 scale up to a real, safety-critical medical device architecture."
+        "Congratulations! You've seen how the fundamentals from the Publish-Subscribe tutorial \u2014 Topics, data types, QoS \u2014 scale up to a real, safety-critical medical device architecture. THE FOLLOWING MODULES ARE NOT SUPPORTED YET ON VS CODE, THIS IS JUST A PLACE HOLDER"
       ],
       "links": [
         { "label": "Module 02: RTI Recording Service & Replay Service", "description": "Record and replay real device data for post-incident analysis or regression testing" },
