@@ -1,6 +1,18 @@
 # Digital Operating Room Cloud Eval Handoff
 
-This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins commit `8847f517bdcebff8ccecc908fdbcd0da851fff22` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
+This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins commit `4050cd3beba407a8cdef3ae65c0f04d995be7a25` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
+
+## Cloud Image And Recovery
+
+The version-controlled [cloud image runbook](docker/README_cloud_eval_image.md)
+contains the Dockerfile, pinned Python requirements, recorded image/archive
+identities, port-8080 clean-install procedure, acceptance checks, and image plus
+workspace-volume backup/restore commands. Use `docker/` as the canonical image
+recipe, not the historical sibling directory. Licensed archives and volume
+backups must be kept in authorized external storage; they are not included in Git.
+The cloud tutorial uses a native VS Code side panel and four live editor-grid UIs,
+without a desktop tutorial window or noVNC display. The dependency discussion
+below includes the separate local-desktop workflow and packaging proposals.
 
 ## Dependencies
 
@@ -88,6 +100,6 @@ Use `./tutorial/launch_all.sh --web` to open the applications in browser tabs wi
 
 ## Verify a clean clone
 
-From a fresh clone, run the command above. Check that `git submodule status` reports `8847f517bdcebff8ccecc908fdbcd0da851fff22` without a leading `-` or `+`, and that the demo starts with four web UI tabs (Arm Controller, Surgical Arm Monitor, Orchestrator, Patient Monitor), a PatientSensor process, and a tutorial window showing ten steps. The first run downloads dependencies and builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh` to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
+From a fresh clone, run the command above. Check that `git submodule status` reports `4050cd3beba407a8cdef3ae65c0f04d995be7a25` without a leading `-` or `+`, and that the demo starts with four web UI tabs (Arm Controller, Surgical Arm Monitor, Orchestrator, Patient Monitor), a PatientSensor process, and a tutorial window showing ten steps. The first run downloads dependencies and builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh` to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
 
 The tutorial's [content and local usage](tutorial/README.md), [cloud integration constraints](tutorial/INTEGRATION_NOTES.md), and [web extension details](medtech-reference-architecture/vscode-extension/README.md) are documented separately. The integration notes describe the current source-build workflow; the prebuilt packaging options above are proposals, not implemented deployment paths. A cloud workspace needs licensed Connext runtime support, the application's runtime dependencies, a display if retaining the PySide6 tutorial GUI, and hosted UI integration. Native build dependencies are needed only if building there. This script prepares a local or suitably provisioned workspace, not a hosted evaluation template.
