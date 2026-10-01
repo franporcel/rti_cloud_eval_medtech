@@ -20,7 +20,7 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
 - **`../medtech-reference-architecture/`** — a local clone of the source repo, confirmed to
   build and run Module 01 end-to-end (see [INTEGRATION_NOTES.md](./INTEGRATION_NOTES.md)).
 - **`launch_all.sh`** — one-command local setup, build, and launch of the demo in VS Code
-  tabs alongside the guided tutorial GUI.
+  tabs alongside the native VS Code tutorial sidebar.
 - **`run_digital_or.sh`** — helper used by `launch_all.sh`; also supports standalone demos
   after the submodule is initialized.
 - **`stop_all.sh`** — stops this checkout's demo apps and launchers from another terminal,
@@ -28,7 +28,8 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
 - **`tutorial_gui.py`** — a standalone PySide6 GUI that reads
   `digital-or-tutorial.json` and guides you through all 10 steps with Previous/Next
   navigation and buttons to open the referenced source files. It runs locally beside the
-  web tabs; it is not the hosted "Connext Studio" panel.
+  web tabs when explicitly run with separately installed PySide6. It is a legacy
+  optional tool, not launched by `launch_all.sh` or included in the cloud image.
 
 ## How the existing Publish-Subscribe tutorial actually works (verified by logging in)
 
@@ -56,15 +57,14 @@ cd cloud_eval_medical
 Run from the repository root with licensed Connext 7.7 installed. The script initializes the
 pinned submodule, prepares a virtual environment, builds C++ and Python type support, and
 starts the four web UIs in VS Code tabs plus a headless Patient Sensor. It opens the tutorial
-GUI alongside them. Closing the tutorial GUI or pressing Ctrl+C in the launch terminal stops
-the demo. In VS Code mode, closing a device tab kills its DDS process so the Orchestrator
+sidebar alongside them. Pressing Ctrl+C in the launch terminal stops the demo.
+In VS Code mode, closing a device tab kills its DDS process so the Orchestrator
 can detect the disconnect. Closing a plain browser tab in `--web` mode does not stop the app.
 
-To use browser tabs instead of VS Code, or native application windows, run:
+To use browser tabs instead of VS Code, run:
 
 ```bash
 ./tutorial/launch_all.sh --web
-./tutorial/launch_all.sh --native
 ```
 
 The launcher installs the bundled [MedTech Web Tabs extension](../medtech-reference-architecture/vscode-extension/README.md)
@@ -73,9 +73,9 @@ for the default VS Code mode. Add `--secure` only after generating security arti
 
 ## Cloud image
 
-The sibling cloud image includes the GTK build dependencies and Python packages,
-and sets `MEDTECH_VENV=/opt/medtech-venv` to reuse its licensed Connext 7.7 Python
-API instead of a copied macOS virtual environment.
+The [cloud image recipe](../docker/README_cloud_eval_image.md) provides web-only
+device apps with no GTK/Qt dependencies and sets `MEDTECH_VENV=/opt/medtech-venv`
+to reuse the base's licensed Connext 7.7 Python API. `--native` is no longer supported.
 
 Open `http://127.0.0.1:8080/?folder=/config/workspace`, accept Workspace Trust for
 this tutorial workspace, and run once in its terminal:
@@ -117,7 +117,9 @@ remains bound to localhost.
 
 ## Guided tutorial GUI
 
-`launch_all.sh` opens the tutorial automatically. Its "Open File" buttons use VS Code if
+This legacy tool requires a separately installed `PySide6`; launch it explicitly
+with `python3 tutorial/tutorial_gui.py`. It is not part of the web-only setup.
+Its "Open File" buttons use VS Code if
 `code` is on your `PATH`, otherwise the OS default editor. The tutorial's web-demo steps
 do not start a second build or launch. In the default VS Code mode, four Restore buttons
 restart stopped apps individually and reopen their VS Code tabs. A button stays disabled

@@ -10,7 +10,7 @@ always uses port **8080**.
 ## What is preserved here
 
 - `Dockerfile`: base image, OS dependencies, virtual environment, and runtime defaults.
-- `requirements.txt`: Python versions measured in the working Linux environment.
+- `requirements.txt`: pinned Python versions for the web-only Module 01 apps.
 - `baseline.json`: original archive checksum, image identities, source revisions,
   observed APT versions, and the working runtime/volume configuration.
 - `.dockerignore`: only the Dockerfile and requirements enter the build context.
@@ -40,11 +40,68 @@ or repack it, and no archive changes are needed for this tutorial. `docker load`
 reads it; `docker build` creates a separate derived image from
 `rti-playground:20260709a` using the updated Dockerfile.
 
-The derived image adds GTK build dependencies, Qt/Python dependencies, and
-`/opt/medtech-venv`. It reuses the base image's licensed `rti.connext==7.7.0` via
-system site packages. The Dockerfile retains Xvfb/noVNC dependencies from an
-earlier approach, but the current tutorial does not use them. They have not been
-removed as part of preserving the working setup.
+The derived image adds Python venv support and `/opt/medtech-venv`. It reuses the
+base image's licensed `rti.connext==7.7.0` via system site packages. Module 01's
+device backends are web-only: neither GTK nor Qt is needed to compile or run them.
+The final image inventory excludes Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK,
+Mesa/EGL/LLVM, Xvfb, x11vnc, noVNC, and websockify. Module 04's separate desktop
+apps remain outside this cloud image; install their own requirements to use them.
+
+### Web-only deployment
+
+`medical-playground` now uses `medical-playground:medtech-cloud-web`, preserving
+the existing `/config` volume, environment, and port 8080. Docker reports
+7,072,172,485 bytes, down from the slim image's 8,113,184,327 bytes (12.8% smaller).
+Added filesystem layers over the base are only 20,504,576 bytes, down from
+829,644,800 bytes (97.5% smaller). The original base dominates the remaining size;
+these are storage/layer metrics, not compressed registry downloads.
+
+A clean cloud-helper build and real five-app runtime passed, including all four
+APIs/assets, fresh DDS vitals, and pause/resume commands. The deployed launcher
+also passed browser verification of the tutorial sidebar, four live 2x2 editor
+views, and Arm tab-close/Restore. Test apps were stopped; the IDE remains running.
+This was an existing-volume test, not a fresh-volume hosted provisioning test.
+
+The previous slim container is stopped as
+`medical-playground-pre-web-2026-10-01T23-04-54-527Z`. All retained containers share
+the same volume; never run them concurrently. The pre-upgrade volume was backed
+up to authorized local storage; its location and checksum are in `baseline.json`.
+An image rollback alone does not restore workspace source. Restore that volume
+backup to a separate volume for exact pre-upgrade workspace recovery.
+
+The parent pins published web-only submodule commit
+`1e18c2f94883f04c8be03b04b2e3758af3f2ec9f`; no source overlay is needed for that
+revision. Older desktop source pins are incompatible with this recipe. The
+Dockerfile deliberately does not bundle source, executables, or extensions;
+prebuilt startup remains future work. Use the web tag consistently to retain
+the historical image tags.
+
+### Historical slim-image reduction
+
+The reduced recipe was built as `medical-playground:medtech-cloud-slim`, leaving
+the running `medical-playground` container and its original image tag unchanged.
+Docker reported 8,901,996,245 bytes before and 8,113,184,327 bytes after: a reduction
+of 788,811,918 bytes (8.9%). Added filesystem layers over the original base dropped
+from 1,400,389,632 to 829,644,800 bytes (40.8% smaller). These storage/layer metrics
+are not compressed archive sizes.
+
+Validation included real Python app imports with Addons absent, a fresh CMake/C++
+build via the cloud setup helper, and all five DDS apps on an isolated Docker
+network. All four HTTP APIs responded, all devices reported ON, and Patient
+Monitor received fresh vitals. The existing user demo was not stopped or modified.
+The browser sidebar/grid was not re-tested in a fresh slim-image IDE session.
+
+The original exported image backup contains the historical image, not the slim
+or web-only images. See `baseline.json` for their separate identities.
+
+The local `medical-playground` container was subsequently recreated on the slim
+image, retaining `medical-playground-cloud-test-config`, the environment, and port
+8080. Its health endpoint and full cloud launcher passed (four APIs, connected
+devices, fresh vitals); test apps were stopped afterward. Reload the browser IDE
+and launch once when ready. The previous container is retained, stopped, as
+`medical-playground-pre-slim-2026-10-01T22-34-07-288Z`. Both containers reference
+the same workspace volume: never run them simultaneously. This retained-container
+upgrade is not a fresh-volume browser-UI acceptance test.
 
 The demo source, bundled VS Code extension, Linux executables, and generated Python
 types live in the container's `/config` volume, **not** in the original archive.
@@ -63,7 +120,7 @@ docker load -i playground-20260709a.tar.gz
 docker image inspect rti-playground:20260709a \
   --format '{{.Os}}/{{.Architecture}} {{.Id}}'
 docker build --no-cache --platform linux/amd64 \
-  -t medical-playground:medtech-cloud .
+  -t medical-playground:medtech-cloud-web .
 ```
 
 The base image must report `linux/amd64`, with the identity in `baseline.json`.
@@ -110,7 +167,7 @@ docker run -d --name medical-playground \
   --mount "type=volume,source=$MEDTECH_CONFIG_VOLUME,target=/config" \
   --tmpfs /run:rw,exec,uid=911,gid=1001,mode=0755 \
   --tmpfs /tmp:rw,mode=1777 \
-  medical-playground:medtech-cloud
+  medical-playground:medtech-cloud-web
 docker logs --tail 80 medical-playground
 ```
 
@@ -120,15 +177,17 @@ required by the image's s6 startup. Publish only the IDE port; device ports
 
 ## 3. Install a fresh, pinned source checkout
 
-Use a directory that does not already exist. This revision is the published
-cloud-tutorial baseline; its submodule includes the native sidebar and grid:
+Use a directory that does not already exist. Pin the clean clone to the parent
+revision of this reviewed recipe checkout; its submodule includes the web-only
+apps, native sidebar, and grid. Run from this runbook's `docker/` directory:
 
 ```bash
+REVIEWED_PARENT_REVISION=$(git -C .. rev-parse HEAD)
 git clone --branch develop \
   https://bitbucket.rti.com/scm/~fporcel/cloud_eval_medical.git \
   cloud_eval_medical-clean
 git -C cloud_eval_medical-clean checkout --detach \
-  6700ae02953c5b931fef39df2b9b1dc49a61cb41
+  "$REVIEWED_PARENT_REVISION"
 git -C cloud_eval_medical-clean submodule update --init --recursive
 git -C cloud_eval_medical-clean submodule status
 
@@ -138,10 +197,10 @@ docker exec --user root medical-playground chown -R 911:1001 /config/workspace
 ```
 
 The `medtech-reference-architecture` submodule revision should be
-`4050cd3beba407a8cdef3ae65c0f04d995be7a25`, without a leading `+` or `-`.
-The historical parent commit predates this `docker/` directory; retain your current
-recipe checkout separately. To test a future tutorial revision, replace the parent
-commit above with the reviewed commit and let it select its submodule revision.
+`1e18c2f94883f04c8be03b04b2e3758af3f2ec9f`, without a leading `+` or `-`.
+Record `REVIEWED_PARENT_REVISION` with the image build so later clones reproduce
+the same source rather than following a moving branch tip. A future reviewed
+parent revision may intentionally select a different submodule commit.
 
 Preinstall the bundled extension **before opening the browser IDE for the first
 time**:
@@ -155,7 +214,7 @@ docker exec --user abc medical-playground /bin/bash -c '
 '
 
 docker exec --user abc medical-playground /opt/medtech-venv/bin/python -c \
-  'import rti.connextdds, PySide6, pyqtgraph; print("Python dependencies OK")'
+  'import rti.connextdds, argcomplete, stun, requests; print("Python dependencies OK")'
 ```
 
 ## 4. Open the IDE and launch once
@@ -238,16 +297,16 @@ CONFIG_VOLUME=$(docker inspect medical-playground --format \
   '{{range .Mounts}}{{if eq .Destination "/config"}}{{.Name}}{{end}}{{end}}')
 test -n "$CONFIG_VOLUME"
 printf '%s\n' "$CONFIG_VOLUME" > "$BACKUP_DIR/volume-name.txt"
-docker image inspect medical-playground:medtech-cloud --format '{{.Id}}' \
+docker image inspect medical-playground:medtech-cloud-web --format '{{.Id}}' \
   > "$BACKUP_DIR/image-id.txt"
-docker save medical-playground:medtech-cloud | gzip \
-  > "$BACKUP_DIR/medical-playground-medtech-cloud.tar.gz"
+docker save medical-playground:medtech-cloud-web | gzip \
+  > "$BACKUP_DIR/medical-playground-medtech-cloud-web.tar.gz"
 docker stop medical-playground
 docker run --rm --platform linux/amd64 --network none --user root \
   --entrypoint tar \
   --mount "type=volume,source=$CONFIG_VOLUME,target=/config,readonly" \
   --mount "type=bind,source=$BACKUP_DIR,target=/backup" \
-  medical-playground:medtech-cloud -C /config -czf /backup/config.tar.gz .
+  medical-playground:medtech-cloud-web -C /config -czf /backup/config.tar.gz .
 docker start medical-playground
 (cd "$BACKUP_DIR" && shasum -a 256 *.tar.gz > SHA256SUMS)
 printf 'Backup directory: %s\n' "$BACKUP_DIR"
@@ -264,14 +323,14 @@ the derived image, and extract the workspace into a **new** volume:
 set -euo pipefail
 BACKUP_DIR=/absolute/path/to/the/backup-directory
 (cd "$BACKUP_DIR" && shasum -a 256 -c SHA256SUMS)
-docker load -i "$BACKUP_DIR/medical-playground-medtech-cloud.tar.gz"
+docker load -i "$BACKUP_DIR/medical-playground-medtech-cloud-web.tar.gz"
 RESTORED_VOLUME="medical-playground-restored-$(date +%Y%m%d-%H%M%S)"
 docker volume create "$RESTORED_VOLUME"
 docker run --rm --platform linux/amd64 --network none --user root \
   --entrypoint tar \
   --mount "type=volume,source=$RESTORED_VOLUME,target=/config" \
   --mount "type=bind,source=$BACKUP_DIR,target=/backup,readonly" \
-  medical-playground:medtech-cloud -C /config -xzf /backup/config.tar.gz
+  medical-playground:medtech-cloud-web -C /config -xzf /backup/config.tar.gz
 printf 'Restored volume: %s\n' "$RESTORED_VOLUME"
 ```
 

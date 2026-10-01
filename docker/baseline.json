@@ -15,11 +15,36 @@
     "id": "sha256:1e4eb75b3305d0931fcad80fc682c830589092070077e0e51bd02663281eaedf",
     "note": "Built with the original sibling Dockerfile; rebuilding this pinned recipe produces a different image ID."
   },
-  "tutorial_revision": "6700ae02953c5b931fef39df2b9b1dc49a61cb41",
-  "medtech_revision": "4050cd3beba407a8cdef3ae65c0f04d995be7a25",
+  "optimized_image": {
+    "tag": "medical-playground:medtech-cloud-slim",
+    "id": "sha256:85b8527823f59261f16377241808950e8890b727077f03adb4dc3c62bcbb29f0",
+    "docker_reported_size_bytes": 8113184327,
+    "previous_docker_reported_size_bytes": 8901996245,
+    "filesystem_layer_bytes": 4488400896,
+    "added_filesystem_layer_bytes_over_base": 829644800,
+    "validation": "Fresh CMake/C++ build, real Python module imports, four HTTP APIs, all device statuses ON, and fresh PatientSensor-to-PatientMonitor DDS data in isolated disposable containers.",
+    "note": "Removed Qt Addons/full PySide6 metapackage and explicit VNC/X11 support packages. GTK development dependencies and Qt Essentials retained. Deployed to medical-playground on 2026-10-01; full cloud-launcher startup passed and test apps were stopped. Historical image and stopped rollback container retained."
+  },
+  "historical_tutorial_revision": "6700ae02953c5b931fef39df2b9b1dc49a61cb41",
+  "web_only_image": {
+    "tag": "medical-playground:medtech-cloud-web",
+    "id": "sha256:a528508d1e8f29139a4d6acb6a5c791a5b0bc3b4294e81fa33f370ef9a30cca6",
+    "docker_reported_size_bytes": 7072172485,
+    "filesystem_layer_bytes": 3679260672,
+    "added_filesystem_layer_bytes_over_base": 20504576,
+    "removed_packages": "Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK/gtkmm, Mesa/EGL/LLVM and VNC support are absent from the final image inventory.",
+    "source_status": "Published web-only submodule commit 1e18c2f94883f04c8be03b04b2e3758af3f2ec9f is pinned by the parent repository. The live volume retains its own existing gitlink 8847f517bdcebff8ccecc908fdbcd0da851fff22 with the tested web-only files overlaid; its Git metadata was not changed during publication.",
+    "validation": "Fresh cloud-helper Linux build, GUI-free binary linkage, default five-app launch, four APIs/assets, fresh DDS vitals, pause/resume, deployed cloud launcher, browser sidebar and 2x2 embedded grid, Arm tab-close/Restore, and scoped teardown.",
+    "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
+    "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
+  },
+  "medtech_revision": "1e18c2f94883f04c8be03b04b2e3758af3f2ec9f",
   "connext_python_version": "7.7.0",
   "runtime": {
     "container_name": "medical-playground",
+    "deployed_image_tag": "medical-playground:medtech-cloud-web",
+    "rollback_container": "medical-playground-pre-web-2026-10-01T23-04-54-527Z",
+    "older_rollback_container": "medical-playground-pre-slim-2026-10-01T22-34-07-288Z",
     "ide_url": "http://127.0.0.1:8080/?folder=/config/workspace",
     "ide_port_mapping": "127.0.0.1:8080:8443",
     "workspace": "/config/workspace",

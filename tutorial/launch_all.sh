@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Launches the Digital Operating Room demo and the guided Tutorial GUI together.
+# Launches the Digital Operating Room web apps and the VS Code tutorial sidebar.
 #
-# Usage: ./launch_all.sh [--secure] [--web|--native|--cloud] (VS Code tabs by default)
+# Usage: ./launch_all.sh [--secure] [--web|--cloud] (VS Code tabs by default)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,7 +18,10 @@ for arg in "$@"; do
   case "$arg" in
     --secure) launch_args+=(--secure); export MEDTECH_SECURITY=1 ;;
     --web) launch_args=(--web "${launch_args[@]:1}"); ui_mode=--web; cloud_mode=0 ;;
-    --native) launch_args=("${launch_args[@]:1}"); ui_mode=--native; cloud_mode=0 ;;
+    --native)
+      echo "error: native device GUIs were removed; use VS Code tabs, --web, or --cloud." >&2
+      exit 2
+      ;;
     --cloud) launch_args=(--vscode "${launch_args[@]:1}"); ui_mode=--vscode; cloud_mode=1 ;;
     *) echo "error: unknown option $arg" >&2; exit 2 ;;
   esac
@@ -74,7 +77,7 @@ elif [[ "${launch_args[0]:-}" == --vscode ]]; then
   elif [[ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]]; then
     code_cli="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
   else
-    echo "error: VS Code CLI not found; install it or run with --web/--native." >&2
+    echo "error: VS Code CLI not found; install it or run with --web." >&2
     exit 1
   fi
   if ! command -v npx >/dev/null 2>&1; then
@@ -96,10 +99,6 @@ fi
 cleanup() {
   echo
   echo "Shutting down Digital Operating Room..."
-  if [[ -n "${GUI_PID:-}" ]] && kill -0 "$GUI_PID" 2>/dev/null; then
-    kill -TERM "$GUI_PID" 2>/dev/null || true
-    wait "$GUI_PID" 2>/dev/null || true
-  fi
   if [[ -n "${DEMO_PID:-}" ]] && kill -0 "$DEMO_PID" 2>/dev/null; then
     pkill -TERM -P "$DEMO_PID" 2>/dev/null || kill "$DEMO_PID" 2>/dev/null || true
     wait "$DEMO_PID" 2>/dev/null || true
@@ -109,25 +108,13 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-if [[ "$cloud_mode" == 1 ]]; then
+if [[ "$ui_mode" == --vscode ]]; then
   (cd "$REPO_DIR" && python3 -c 'import os; from launch import _open_vscode_uri; _open_vscode_uri("vscode://rti.medtech-web-tabs/tutorial?secure=" + os.environ["MEDTECH_SECURITY"])')
-  echo "Opening the Tutorial side panel and four device tabs in the browser IDE."
+  echo "Opening the Tutorial side panel and four device tabs in VS Code."
 fi
 
 echo "Starting Digital Operating Room demo in the background..."
 "$SCRIPT_DIR/run_digital_or.sh" --launch-only "${launch_args[@]}" &
 DEMO_PID=$!
 
-if [[ "$cloud_mode" == 1 ]]; then
-  wait "$DEMO_PID"
-  exit 0
-fi
-
-echo "Starting Tutorial GUI..."
-cd "$SCRIPT_DIR"
-export MEDTECH_DEMO_STARTING=1
-python3 tutorial_gui.py &
-GUI_PID=$!
-
-# Closing the tutorial or interrupting this wait triggers cleanup of both apps.
-wait "$GUI_PID"
+wait "$DEMO_PID"
