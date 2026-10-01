@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Launches the Digital Operating Room demo and the guided Tutorial GUI together.
 #
-# Usage: ./launch_all.sh [--secure] [--web|--native] (VS Code tabs by default)
+# Usage: ./launch_all.sh [--secure] [--web|--native|--cloud] (VS Code tabs by default)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,24 +9,34 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_DIR="$ROOT_DIR/medtech-reference-architecture"
 launch_args=(--vscode)
 ui_mode=--vscode
+cloud_mode=0
+if [[ -d /app/code-server && -z "${DISPLAY:-}" ]]; then
+  cloud_mode=1
+fi
 export MEDTECH_SECURITY=0
 for arg in "$@"; do
   case "$arg" in
     --secure) launch_args+=(--secure); export MEDTECH_SECURITY=1 ;;
-    --web) launch_args=(--web "${launch_args[@]:1}"); ui_mode=--web ;;
-    --native) launch_args=("${launch_args[@]:1}"); ui_mode=--native ;;
+    --web) launch_args=(--web "${launch_args[@]:1}"); ui_mode=--web; cloud_mode=0 ;;
+    --native) launch_args=("${launch_args[@]:1}"); ui_mode=--native; cloud_mode=0 ;;
+    --cloud) launch_args=(--vscode "${launch_args[@]:1}"); ui_mode=--vscode; cloud_mode=1 ;;
     *) echo "error: unknown option $arg" >&2; exit 2 ;;
   esac
 done
 export MEDTECH_UI_MODE="$ui_mode"
+
+if [[ "$cloud_mode" == 1 ]]; then
+  export MEDTECH_CLOUD=1
+fi
 
 if [[ "$ui_mode" != --native ]]; then
   python3 - <<'PY'
 import socket
 
 busy = []
-for name, port in (("Orchestrator", 8090), ("Arm Controller", 8091),
-                   ("Arm", 8092), ("Patient Monitor", 8093)):
+ports = [("Orchestrator", 8090), ("Arm Controller", 8091),
+     ("Arm", 8092), ("Patient Monitor", 8093)]
+for name, port in ports:
     try:
         with socket.create_connection(("127.0.0.1", port), timeout=0.2):
             busy.append(f"{name} ({port})")
@@ -51,7 +61,14 @@ fi
 echo "Initializing MedTech at $expected_commit..."
 git -C "$ROOT_DIR" submodule update --init --recursive -- medtech-reference-architecture
 
-if [[ "${launch_args[0]:-}" == --vscode ]]; then
+if [[ "$cloud_mode" == 1 ]]; then
+  extension_dir="${MEDTECH_CODE_SERVER_EXTENSIONS:-/config/extensions}/rti.medtech-web-tabs-0.1.0"
+  mkdir -p "$extension_dir"
+  for file in package.json extension.js tutorial-view.js tutorial.svg; do
+    cp "$REPO_DIR/vscode-extension/$file" "$extension_dir/$file"
+  done
+  echo "MedTech tutorial extension installed. Reload the browser IDE once if its Tutorial view is not visible."
+elif [[ "${launch_args[0]:-}" == --vscode ]]; then
   if command -v code >/dev/null 2>&1; then
     code_cli=$(command -v code)
   elif [[ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]]; then
@@ -70,9 +87,9 @@ if [[ "${launch_args[0]:-}" == --vscode ]]; then
 fi
 
 "$SCRIPT_DIR/run_digital_or.sh" --setup-only
-source "$REPO_DIR/.venv/bin/activate"
+source "${MEDTECH_VENV:-$REPO_DIR/.venv}/bin/activate"
 
-if [[ "${launch_args[0]:-}" == --vscode ]]; then
+if [[ "$cloud_mode" != 1 && "${launch_args[0]:-}" == --vscode ]]; then
   "$code_cli" "$ROOT_DIR"
 fi
 
@@ -92,9 +109,19 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+if [[ "$cloud_mode" == 1 ]]; then
+  (cd "$REPO_DIR" && python3 -c 'import os; from launch import _open_vscode_uri; _open_vscode_uri("vscode://rti.medtech-web-tabs/tutorial?secure=" + os.environ["MEDTECH_SECURITY"])')
+  echo "Opening the Tutorial side panel and four device tabs in the browser IDE."
+fi
+
 echo "Starting Digital Operating Room demo in the background..."
 "$SCRIPT_DIR/run_digital_or.sh" --launch-only "${launch_args[@]}" &
 DEMO_PID=$!
+
+if [[ "$cloud_mode" == 1 ]]; then
+  wait "$DEMO_PID"
+  exit 0
+fi
 
 echo "Starting Tutorial GUI..."
 cd "$SCRIPT_DIR"

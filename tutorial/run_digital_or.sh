@@ -45,24 +45,32 @@ if [[ -z "${NDDSHOME:-}" ]]; then
 fi
 
 cd "$REPO_DIR"
+venv_dir="${MEDTECH_VENV:-$REPO_DIR/.venv}"
 
 if [[ "$mode" != launch ]]; then
-  if [[ ! -d .venv ]]; then
+  if [[ ! -d "$venv_dir" ]]; then
     echo "Creating virtual environment..."
-    python3 -m venv .venv
+    python3 -m venv "$venv_dir"
   fi
 fi
-if [[ ! -f .venv/bin/activate ]]; then
+if [[ ! -f "$venv_dir/bin/activate" ]]; then
   echo "error: virtual environment missing; run setup first." >&2
   exit 1
 fi
 # shellcheck disable=SC1091
-source .venv/bin/activate
+source "$venv_dir/bin/activate"
 
 if [[ "$mode" != launch ]]; then
   echo "Installing Python dependencies..."
-  python3 -m pip install -q -r requirements.txt
-  python3 -m pip install -q rti.connext.activated -f "$NDDSHOME/resource/python_api"
+  if [[ "${MEDTECH_CLOUD:-0}" == 1 ]]; then
+    python3 -c 'import rti.connextdds, PySide6, pyqtgraph' || {
+      echo "error: cloud Python dependencies missing; rebuild the cloud image." >&2
+      exit 1
+    }
+  else
+    python3 -m pip install -q -r requirements.txt
+    python3 -m pip install -q rti.connext.activated -f "$NDDSHOME/resource/python_api"
+  fi
 
   echo "Building (C++ targets + Python type support)..."
   python3 build.py

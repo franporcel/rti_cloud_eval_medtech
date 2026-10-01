@@ -67,7 +67,13 @@ def load_tutorial() -> dict:
 
 def open_file(path: str) -> None:
     full_path = (REPO_ROOT / path).resolve()
-    if shutil.which("code"):
+    if os.environ.get("MEDTECH_CLOUD") == "1":
+        subprocess.run([
+            "/app/code-server/bin/code-server", "--user-data-dir",
+            os.environ.get("MEDTECH_CODE_SERVER_DATA", "/config/data"),
+            "--reuse-window", str(full_path),
+        ], check=False)
+    elif shutil.which("code"):
         subprocess.run(["code", str(full_path)], check=False)
     else:
         opener = "open" if platform.system() == "Darwin" else "xdg-open"

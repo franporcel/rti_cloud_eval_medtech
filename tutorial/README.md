@@ -23,6 +23,8 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
   tabs alongside the guided tutorial GUI.
 - **`run_digital_or.sh`** — helper used by `launch_all.sh`; also supports standalone demos
   after the submodule is initialized.
+- **`stop_all.sh`** — stops this checkout's demo apps and launchers from another terminal,
+  including restored or orphaned devices; leaves the browser IDE and container running.
 - **`tutorial_gui.py`** — a standalone PySide6 GUI that reads
   `digital-or-tutorial.json` and guides you through all 10 steps with Previous/Next
   navigation and buttons to open the referenced source files. It runs locally beside the
@@ -68,6 +70,50 @@ To use browser tabs instead of VS Code, or native application windows, run:
 The launcher installs the bundled [MedTech Web Tabs extension](../medtech-reference-architecture/vscode-extension/README.md)
 for the default VS Code mode. Add `--secure` only after generating security artifacts; see the
 [top-level setup guide](../README.md).
+
+## Cloud image
+
+The sibling cloud image includes the GTK build dependencies and Python packages,
+and sets `MEDTECH_VENV=/opt/medtech-venv` to reuse its licensed Connext 7.7 Python
+API instead of a copied macOS virtual environment.
+
+Open `http://127.0.0.1:8080/?folder=/config/workspace`, accept Workspace Trust for
+this tutorial workspace, and run once in its terminal:
+
+```bash
+cd /config/workspace
+./tutorial/launch_all.sh --cloud
+```
+
+Cloud mode is also selected automatically in a headless `/app/code-server` image.
+The launcher installs the bundled extension, builds all five DDS applications,
+opens the tutorial in a native VS Code side panel, and opens Arm Controller, Arm,
+Orchestrator, and Patient Monitor in a 2x2 editor grid. Patient Sensor is headless.
+No desktop VS Code CLI or noVNC display is used. After first installing or updating
+the extension, reload the browser IDE once if the Digital Operating Room activity
+icon is missing. Select that icon before launching if multiple IDE windows are open.
+
+The tutorial renders the same ten JSON steps with Open File actions and Restore
+buttons. Closing a device editor tab kills its DDS process; Restore starts only
+that device and reopens its tab. While the device is running or its health is
+unknown, its Restore button is disabled. Only the code-server port needs publishing;
+the embedded device frames use `/proxy/8090/` through `/proxy/8093/` internally.
+
+Set `MEDTECH_CLOUD_URL` to the external IDE origin when it differs from
+`http://127.0.0.1:8080` in the container environment before code-server starts,
+and `MEDTECH_CODE_SERVER_EXTENSIONS` if its extension directory differs from
+`/config/extensions`. Hosted deployments with a URL prefix need matching proxy
+routing integration.
+
+Press Ctrl+C in the launch terminal to stop the demo, including restored devices,
+and close its device tabs. If that terminal is lost, open another IDE terminal and
+run `./tutorial/stop_all.sh` from `/config/workspace`. It targets only this checkout's
+processes owned by your user and is safe to run again when nothing is running.
+Do not launch a second copy while the first is running. A ports-already-in-use error
+means an existing launch must first be stopped.
+This is a bundled tutorial view, not registration as a hosted Connext Studio template.
+Keep platform authentication in front of remote proxy routes; the sample Docker port
+remains bound to localhost.
 
 ## Guided tutorial GUI
 

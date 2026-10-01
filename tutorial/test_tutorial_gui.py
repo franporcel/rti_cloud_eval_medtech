@@ -3,8 +3,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -14,6 +16,61 @@ import urllib.error
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import tutorial_gui as gui
+
+
+@unittest.skipIf(os.name == "nt", "Stop script uses POSIX process signals")
+class StopScriptTests(unittest.TestCase):
+    def test_stops_checkout_apps_and_relative_launcher_but_not_unrelated_apps(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tutorial = root / "tutorial"
+            repo = root / "medtech-reference-architecture"
+            tutorial.mkdir()
+            script = tutorial / "stop_all.sh"
+            shutil.copy2(Path(__file__).parent / "stop_all.sh", script)
+            paths = [
+                repo / "modules/01-operating-room/src/Arm.py",
+                repo / "build/testLinux/modules/01-operating-room/ArmController",
+                repo / "launch.py",
+                root / "unrelated/Arm.py",
+            ]
+            for app in paths:
+                app.parent.mkdir(parents=True, exist_ok=True)
+                app.write_text("import sys; sys.stdin.read()\n")
+            children = [
+                subprocess.Popen([sys.executable, str(app)], stdin=subprocess.PIPE)
+                for app in paths[:2]
+            ]
+            children.append(subprocess.Popen([sys.executable, "launch.py", "01-operating-room"], cwd=repo, stdin=subprocess.PIPE))
+            unrelated = subprocess.Popen([sys.executable, str(paths[3])], stdin=subprocess.PIPE)
+            try:
+                environment = {**os.environ, "TMPDIR": directory}
+                result = subprocess.run(["bash", str(script)], capture_output=True, text=True, env=environment, timeout=15)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                for child in children:
+                    self.assertIsNotNone(child.wait(timeout=5))
+                self.assertIsNone(unrelated.poll())
+                result = subprocess.run(["bash", str(script)], capture_output=True, text=True, env=environment, timeout=15)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("No Digital Operating Room processes running", result.stdout)
+                self.assertIsNone(unrelated.poll())
+            finally:
+                for child in children + [unrelated]:
+                    if child.poll() is None:
+                        child.kill()
+                    child.wait(timeout=5)
+                    child.stdin.close()
+
+
+class OpenFileTests(unittest.TestCase):
+    def test_cloud_file_opens_in_browser_ide(self):
+        with patch.dict(os.environ, {"MEDTECH_CLOUD": "1", "MEDTECH_CODE_SERVER_DATA": "/config/data"}), \
+                patch.object(gui.subprocess, "run") as run:
+            gui.open_file("system_arch/Types.xml")
+        run.assert_called_once_with([
+            "/app/code-server/bin/code-server", "--user-data-dir", "/config/data",
+            "--reuse-window", str((gui.REPO_ROOT / "system_arch/Types.xml").resolve()),
+        ], check=False)
 
 
 class RestoreTests(unittest.TestCase):
