@@ -104,15 +104,15 @@ The launch command has already set up, built, and started all five applications.
 
 ### Expected Result
 
-4 browser tabs show Patient Monitor (live vitals), Arm (motor angles), Arm Controller (motor buttons and alerts), and Orchestrator (device status and alerts). In the cloud workspace, open the proxy URLs printed by the launcher. For a local demo, launch with `./tutorial/launch_all.sh --web`. Patient Sensor runs headless in the background.
+4 device editor tabs in a 2x2 grid show Arm Controller and Orchestrator above Arm and Patient Monitor. The tutorial remains this Markdown file; there is no tutorial panel. For desktop VS Code, launch with `./tutorial/launch_all.sh --vscode`; `--web` is the ordinary browser-tab fallback. Patient Sensor runs headless in the background.
 
 ### Try This
 
 - From the Orchestrator, send a `Pause` command to the Patient Sensor. Watch the Patient Monitor pause, then resume it with `Start`.
 - From the Arm Controller, stop all motors, then resume just the Elbow motor and nudge the Wrist with the +/- buttons.
 - From the Orchestrator, send `Start` to the Arm, then `Start` to resume it.
-- Send `Shut Down` to the Arm. Notice how the Orchestrator now reports it as `OFF` and detects that it is no longer sending heartbeats. Closing a browser tab does not stop its application.
-- `Start` resumes a paused device; it cannot relaunch an exited process. Restart stopped applications with:
+- Close the Arm device editor tab to stop its process. Notice how the Orchestrator reports it as `OFF` when its heartbeats stop. Closing an ordinary browser tab in `--web` mode does not stop its application.
+- Select Arm in Orchestrator and click `Start` to relaunch it and reopen its editor tab. To restart the entire demo, run:
 
 ```sh
 ./tutorial/restart_all.sh
@@ -140,7 +140,7 @@ Just like the Reliable QoS step in the Publish-Subscribe tutorial, this system r
     ./tutorial/restart_all.sh
     ```
 
-    - Stop the Patient Monitor process without sending a DDS shutdown command: locate its PID with `pgrep -fl 'src/PatientMonitor.py'`, verify the process belongs to this demo, and run `kill -TERM <pid>`. Observe the Orchestrator's offline alert after the new deadline, then run `./tutorial/restart_all.sh` to restart the demo. Use `--web` for local browser mode.
+    - Close the Patient Monitor device editor tab to stop its process. Observe the Orchestrator's offline alert after the new deadline, then select Patient Monitor and click `Start` to recover it. In `--web` mode, terminate its verified PID instead and restart the demo afterward.
 - Comment out the `<content_filter>` for `dr/DeviceCommand` under `dp/PatientMonitor` in [ParticipantLibrary.xml](../medtech-reference-architecture/system_arch/xml_app_creation/ParticipantLibrary.xml), restart, and send a `Shut Down` command to only the Arm Controller -- notice the Patient Monitor also shuts down, because it's no longer filtering commands meant for other devices. Content-Filter Topics allow you to filter out data based on its content!
 
 **Key Takeaway:** These are the exact QoS levers a systems engineer tunes to move from a lab prototype to a certifiable, patient-safe deployment -- without changing application code.
@@ -158,9 +158,9 @@ Because Connext is data-centric, tools can introspect your running system withou
 
 ## 9. Simulate a Real-World Failure
 
-While watching the Orchestrator's Alerts panel, locate the Arm process with `pgrep -fl 'src/Arm.py'`, verify its PID belongs to this demo, and run `kill -TERM <pid>`. This stops its heartbeats. Wait for the disconnect alert, then run `./tutorial/restart_all.sh` to restart the demo and refresh the device browser tabs. Use `--web` for local browser mode. Keep the Orchestrator tab open so you can observe the failure and recovery.
+While watching the Orchestrator's Alerts panel, close the Arm device editor tab. This stops its process and heartbeats. Wait for the disconnect alert, then select Arm and click `Start` to restart that device and reopen its tab. Keep Orchestrator open to observe the failure and recovery. In `--web` mode, terminate the verified Arm PID instead and restart the demo afterward.
 
-To compare with a graceful stop, send `Shut Down` to the Arm Controller from the Orchestrator and observe its status change. Restart the demo to bring it back.
+To compare with a graceful stop, send `Shut Down` to the Arm Controller from Orchestrator and observe its status change. Select Arm Controller and click `Start` to bring it back without restarting the other devices.
 
 **Key Takeaway:** This is one of the key selling points of Connext for healthcare buyers: Connext turns device failure detection and safe shutdown into a QoS-and-architecture concern, not bespoke integration code per device vendor.
 

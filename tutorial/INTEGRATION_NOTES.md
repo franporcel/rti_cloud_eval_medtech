@@ -6,10 +6,12 @@ template. The tutorial is [TUTORIAL.md](TUTORIAL.md), not an injected tutorial p
 ## Browser Routing
 
 The demo has four HTTP UIs on ports 8090-8093 and a headless Patient Sensor.
-Cloud mode prints authenticated code-server proxy URLs; local `--web` mode opens
-browser tabs. Validate those proxy routes, authentication, and any deployment URL
-prefix in the hosted workspace. No desktop display or custom editor integration
-is needed. Browser tab closure does not stop DDS applications.
+Cloud mode uses the bundled device-only extension to embed authenticated
+code-server proxy URLs in a 2x2 editor grid. Desktop `--vscode` mode uses the
+same grid; `--web` opens ordinary browser tabs. Validate extension activation,
+those proxy routes, authentication, and any deployment URL prefix in the hosted
+workspace. No desktop display or tutorial panel is needed. Device editor tab
+closure stops its DDS process; ordinary browser tab closure does not.
 
 ## Build And Licensing
 

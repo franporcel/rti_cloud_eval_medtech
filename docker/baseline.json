@@ -33,12 +33,14 @@
     "filesystem_layer_bytes": 3679260672,
     "added_filesystem_layer_bytes_over_base": 20504576,
     "removed_packages": "Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK/gtkmm, Mesa/EGL/LLVM and VNC support are absent from the final image inventory.",
-    "source_status": "Published browser-only submodule commit e072dfd2197e5fe8155ff06025233dd02f7c1618 is pinned by the parent repository. The Markdown-only tutorial and extension removal have not been deployed into the live volume, which retains its prior source overlays and installed extension. The live volume retains its own existing gitlink 8847f517bdcebff8ccecc908fdbcd0da851fff22; its Git metadata was not changed during publication. The dependency image was not rebuilt for these source changes.",
-    "validation": "Historical pre-Markdown-only validation: fresh cloud-helper Linux build, GUI-free binary linkage, default five-app launch, four APIs/assets, fresh DDS vitals, pause/resume, and scoped teardown. Current browser-only launcher has not yet been deployed or live-validated.",
+    "source_status": "Device-grid scope corrected on 2026-10-02: device-only extension, grid lifecycle and recovery restored and deployed into the live volume; only the tutorial panel/content integration remains removed. This parent revision pins published submodule 898e28a0504ff9f38e0bd525e5931eed3c8bfa5a. Previous parent dc5c6f9849f82fd2c011de7640b226e0608ab48e and submodule e072dfd2197e5fe8155ff06025233dd02f7c1618 describe the historical browser-only detour. The live volume retains its existing gitlink 8847f517bdcebff8ccecc908fdbcd0da851fff22 and unrelated local edits; Git metadata was not changed. Dependency image unchanged because workspace source and extension reside in /config, not image layers. Extension activation/request handling is not restricted to the MedTech workspace; separate volumes/containers avoid cross-repo launch routing.",
+    "validation": "Corrected device-grid deployment: 25 JavaScript tests pass host/Linux, nine host launcher tests, shell syntax, full Linux build, real IDE 2x2 grid in the intended order, no tutorial activity-bar entry, all devices ON and fresh DDS patient data. Arm editor-tab closure terminates its process and produces OFF; Orchestrator Start relaunches it into the same bottom-left slot with surviving tabs retained. Multi-window cleanup targets owning hosts; code-server refreshed, full stop closes all four tabs and releases all ports, then a clean restart leaves the final grid running with nonblank Arm and waveform canvases.",
+    "device_grid_pre_deployment_backup": "/config/medtech-deployment-backups/device-grid-20261002-223334/pre-deploy.tar.gz",
+    "markdown_only_pre_deployment_backup": "/config/medtech-deployment-backups/markdown-only-20261002-222054/pre-deploy.tar.gz",
     "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
     "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
   },
-  "medtech_revision": "e072dfd2197e5fe8155ff06025233dd02f7c1618",
+  "medtech_revision": "898e28a0504ff9f38e0bd525e5931eed3c8bfa5a",
   "connext_python_version": "7.7.0",
   "runtime": {
     "container_name": "medical-playground",

@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 python3 - "$SCRIPT_DIR/.." <<'PY'
+import json
 import os
 from pathlib import Path
 import re
@@ -10,7 +11,9 @@ import shlex
 import signal
 import subprocess
 import sys
+import tempfile
 import time
+import uuid
 
 root = Path(sys.argv[1]).resolve()
 repo = root / "medtech-reference-architecture"
@@ -90,6 +93,27 @@ while remaining and time.monotonic() < deadline:
     if remaining:
         time.sleep(0.1)
 stop(remaining, signal.SIGKILL)
+
+if Path("/app/code-server").is_dir():
+    state_dir = Path(tempfile.gettempdir()) / f"medtech-web-tabs-{os.getuid()}"
+    requests = state_dir / "requests"
+    requests.mkdir(parents=True, exist_ok=True)
+    hosts = set()
+    for title in ("ArmController", "Orchestrator", "Arm", "PatientMonitor"):
+        try:
+            host = (state_dir / title).read_text().strip()
+            if host.isdecimal() and int(host) > 0:
+                hosts.add(host)
+        except FileNotFoundError:
+            pass
+    for host in sorted(hosts) or [None]:
+        request = requests / f"{time.time_ns()}-{uuid.uuid4().hex}.json"
+        pending = request.with_suffix(".tmp")
+        payload = {"uri": "vscode://rti.medtech-web-tabs/close"}
+        if host is not None:
+            payload["targetHost"] = host
+        pending.write_text(json.dumps(payload))
+        pending.replace(request)
 
 print(f"Stopped {len(selected)} Digital Operating Room process(es)." if selected else "No Digital Operating Room processes running.")
 PY

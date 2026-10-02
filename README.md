@@ -10,8 +10,9 @@ identities, port-8080 clean-install procedure, acceptance checks, and image plus
 workspace-volume backup/restore commands. Use `docker/` as the canonical image
 recipe, not the historical sibling directory. Licensed archives and volume
 backups must be kept in authorized external storage; they are not included in Git.
-The tutorial is a Markdown file, and the four device UIs run in browser tabs,
-without a tutorial panel, desktop window, or noVNC display. Module 01 no longer needs GTK,
+The tutorial is a Markdown file, and the four device UIs run in a 2x2 editor grid
+using the bundled device-only extension, without a tutorial panel, desktop window,
+or noVNC display. Module 01 no longer needs GTK,
 Qt, NumPy or pyqtgraph, even when building from source. The deployed web-only image
 is 7.07 GB by Docker's storage metric; only 20.5 MB of filesystem layers are added
 over the original Playground base. Historical desktop measurements and future
@@ -38,7 +39,7 @@ These remain necessary with the current application code, even if the C++ applic
 - Python 3.10+ and the installed Python packages listed below, including the Connext 7.7.0 Python API. `pip` and `venv` are provisioning tools, not application requirements once the environment is prepared.
 - The Connext C++ shared libraries used by the binaries, compatible OS/C++ runtime libraries, and the required runtime licensing configuration. Precompilation does not remove licensing requirements; a runtime-only Connext layout and redistribution rights must be validated with RTI.
 - No GTK/Qt/display stack is needed for Module 01. Its C++ binaries no longer link GTK, and its Python backends no longer import desktop libraries.
-- A browser for the device UIs and a Markdown viewer for the tutorial. Cloud mode uses the existing code-server proxy; `--web` opens local browser tabs. Native device windows are no longer supported. Hosted template provisioning still requires platform validation.
+- VS Code/code-server with the bundled device-grid extension, and a Markdown viewer for the tutorial. Cloud mode installs the extension files directly; desktop `--vscode` mode needs Node.js/npx and the `code` CLI for packaging/installation. `--web` opens local browser tabs without the extension. Native device windows are no longer supported. Hosted template provisioning still requires platform validation.
 
 The local launcher creates a virtual environment and installs the MedTech Python requirements: `argcomplete>=3.1`, `pystun3>=2.0`, and `requests>=2.31`. It installs `rti.connext.activated` from the local Connext installation separately. Cloud mode checks the preinstalled environment instead. Module 04's optional desktop threat tools have their own requirements file and are not supported by this web-only image. Python transitive dependencies are resolved by `pip`.
 
@@ -88,12 +89,12 @@ Before committing to either option, measure on the actual Linux base image: depe
 ```bash
 git clone --recurse-submodules ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git
 cd cloud_eval_medical
-./tutorial/launch_all.sh --web
+./tutorial/launch_all.sh --vscode
 ```
 
-The single launch command also works after a plain `git clone`: it initializes the MedTech submodule at the pinned commit if missing, creates a virtual environment, installs the Python requirements and Connext Python wheel, builds the C++ apps and Python types, and launches the Digital OR applications in browser tabs. Open [tutorial/TUTORIAL.md](tutorial/TUTORIAL.md) for the guided steps. The submodule checkout is never advanced to the latest branch tip. Existing tracked changes in a checkout at another commit block the update rather than being discarded.
+The single launch command also works after a plain `git clone`: it initializes the MedTech submodule at the pinned commit if missing, prepares Python dependencies, builds the C++ apps and Python types, installs the device-only extension, and launches the Digital OR applications in a 2x2 editor grid. Open [tutorial/TUTORIAL.md](tutorial/TUTORIAL.md) for the guided steps; there is no tutorial panel. The submodule checkout is never advanced to the latest branch tip. Existing tracked changes in a checkout at another commit block the update rather than being discarded.
 
-Without a mode flag, `./tutorial/launch_all.sh` defaults to cloud/code-server mode and prints device proxy URLs; `--cloud` remains an explicit alias. Use `--web` for local browser tabs. Add `--secure` only after generating the security artifacts described in the MedTech README. After setup, the demo runs in the background and the terminal prompt returns; the launcher prints its PID and log file path. Use `./tutorial/stop_all.sh` to stop it or `./tutorial/restart_all.sh` to restart it with the same mode options. Direct foreground demo-only startup remains available with `./tutorial/run_digital_or.sh --web` after the submodule is initialized.
+Without a mode flag, `./tutorial/launch_all.sh` defaults to cloud/code-server grid mode; `--cloud` remains an explicit alias. Use `--vscode` for desktop VS Code or `--web` for ordinary browser tabs. Add `--secure` only after generating the security artifacts described in the MedTech README. After setup, the demo runs in the background and the terminal prompt returns; the launcher prints its PID and log file path. Use `./tutorial/stop_all.sh` to stop it or `./tutorial/restart_all.sh` to restart it with the same mode options. Direct foreground demo-only startup remains available with `./tutorial/run_digital_or.sh --vscode` after the submodule is initialized.
 
 ## Verify a clean clone
 

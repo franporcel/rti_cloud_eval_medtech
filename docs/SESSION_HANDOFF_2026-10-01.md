@@ -1,7 +1,59 @@
 # Cloud evaluation session handoff
 
-Latest source update: 2026-10-02, Markdown-only tutorial and bundled extension
-removal. This opening section supersedes every historical workflow below.
+Latest source update: 2026-10-02, corrected scope: restore the device extension
+and 2x2 editor grid; remove only the tutorial panel. This opening section
+supersedes every historical workflow below.
+
+## Resume Here: Device Grid, Markdown Tutorial
+
+- User clarified that only the tutorial panel should be removed, not the device
+  grid. The bundled extension now contributes only its device command, with no
+  tutorial view, activity-bar container, renderer, JSON content, or desktop GUI.
+- Grid: Arm Controller / Orchestrator above Arm / Patient Monitor. Cloud default
+  and desktop `--vscode` modes restore editor-tab lifecycle and Orchestrator Start
+  recovery; `--web` remains the ordinary browser fallback. Read
+  [TUTORIAL.md](../tutorial/TUTORIAL.md) separately as Markdown.
+- Device recovery is extracted into `vscode-extension/device-launcher.js` and
+  is independent of tutorial visibility. `/session` initializes security and
+  startup state without opening any panel. Focus the intended IDE window before
+  launching when several windows are open.
+- Host checks passed: 25 JavaScript tests (including no tutorial contributions,
+  cloud ownership, concurrent recovery, grid slots and surviving panels), nine
+  launcher tests, and shell syntax. The same 25 JavaScript tests pass in Linux;
+  the normal cloud launcher completed the Linux build and opened the real grid.
+- Live acceptance: all four device editor tabs occupy their intended slots, all
+  devices report ON, patient data is fresh, and the activity bar has no tutorial
+  entry. Closing Arm terminated its original process (PID 9019 became defunct),
+  produced the DDS OFF alert, and Orchestrator Start relaunched/reopened it in
+  the bottom-left slot without replacing the other tabs.
+- Multi-window cleanup was corrected: full stop routes requests to the hosts
+  recorded as owning device tabs, rather than whichever window is focused.
+  Its regression passes; code-server was restarted so all hosts load that fix.
+  Live full stop closed all four tabs and released all four device ports.
+- Final demo is RUNNING after a clean restart: supervisor PID 1822, log
+  `/tmp/medtech-digital-or.nXZQIg`. Shared IDE:
+  `http://127.0.0.1:8080/?folder=/config/workspace/tutorial`. All devices ON,
+  patient `data_stale=false`, nonblank Arm and three waveform canvases, intended
+  editor groups 1/2/3/4, and zero tutorial activity-bar entries verified.
+- Scoped pre-correction backup:
+  `/config/medtech-deployment-backups/device-grid-20261002-223334/pre-deploy.tar.gz`.
+  This is an affected-files backup, not an image/full-volume export. Source Git
+  metadata and unrelated edits were preserved; dependency image unchanged.
+- Device-grid source is published on `origin/web-based-tutorial-apps` at
+  `898e28a0504ff9f38e0bd525e5931eed3c8bfa5a`; this parent revision pins it.
+  Previous parent `dc5c6f9` and submodule `e072dfd` describe the browser-only
+  detour, not the current device-grid workflow.
+- Shared-workspace caveat: the extension activates in every workspace in a
+  code-server instance and uses a per-user request queue. Another repo's window
+  can consume MedTech launch requests. Workspace-only activation/request
+  handling is recommended but has not been implemented. Separate containers
+  with independent `/config` volumes do not share this installation or queue.
+
+## Historical Browser-Only Detour
+
+The following section records the overly broad extension removal and its
+deployment, before the user clarified the intended scope. Its browser-only
+startup and recovery limitations are superseded by the device-grid correction.
 
 ## Resume Here: Markdown-Only Tutorial
 
@@ -29,14 +81,27 @@ removal. This opening section supersedes every historical workflow below.
   preserving an unrelated process), four Node UI tests, shell syntax for all
   four scripts, embedded stop-helper Python syntax, JSON parsing, Markdown
   source links, and touched-file diagnostics.
-- **Deployment remains pending.** These source changes have not been copied to
-  the running container. Its previously installed extension and existing volume
-  remain unchanged. No image rebuild, container restart, live browser acceptance
-  check, or backup refresh was performed for this change.
-- Before live acceptance, deploy the matching parent/submodule revisions into
-  the preserved workspace, remove only the bundled `rti.medtech-web-tabs`
-  installation, and reload the IDE. Do not remove other extensions. Verify all
-  four authenticated proxy URLs, live DDS data, pause/resume, and stop/restart.
+- **Deployed on 2026-10-02** into `medical-playground`'s preserved `/config`
+  volume. Changed files from parent `dc5c6f9849f82fd2c011de7640b226e0608ab48e`
+  and submodule `e072dfd2197e5fe8155ff06025233dd02f7c1618` were copied and
+  byte-verified against Git. Retired tutorial files and the bundled extension
+  source/installation were removed; other extensions were left untouched.
+- The existing image is unchanged: `medical-playground:medtech-cloud-web`,
+  ID `sha256:a528508d1e8f29139a4d6acb6a5c791a5b0bc3b4294e81fa33f370ef9a30cca6`.
+  The recipe stores source in the workspace volume, not image layers, so no
+  dependency-image rebuild was needed. The container was restarted to unload
+  the removed extension. Existing Git metadata, QoS/XML edits, and build outputs
+  were preserved; this deployment is a scoped source overlay, not a clean clone.
+- Verified in the container: all four Node UI tests, script syntax, `abc:abc`
+  ownership, full Linux build, four HTTP pages/APIs, all four authenticated
+  browser proxy routes, fresh DDS vitals, Pause/Start through the browser UI
+  for all four devices, and full stop/restart without reinstalling the extension.
+  Final state: demo running, four devices ON, patient data not stale. Supervisor
+  PID `1258`, log `/tmp/medtech-digital-or.DEMoVW` (process values are transient).
+- Verified targeted pre-deployment backup:
+  `/config/medtech-deployment-backups/markdown-only-20261002-222054/pre-deploy.tar.gz`.
+  It preserves affected prior source and the removed extension, not the complete
+  image or volume. Keep it private; approved off-machine backup remains pending.
 - Publication: submodule `e072dfd2197e5fe8155ff06025233dd02f7c1618` is published
   on GitHub's `web-based-tutorial-apps` branch; its remote SHA was verified.
   The parent commit containing this handoff pins that revision and targets

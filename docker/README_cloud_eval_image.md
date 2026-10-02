@@ -21,6 +21,18 @@ Keep future image changes here and commit/push them with the tutorial changes.
 The current development volume is `medical-playground-cloud-test-config`; do not
 remove it when performing a clean-install test.
 
+### Current device-grid correction
+
+The live volume now restores the device-only extension and four-app editor grid;
+only the tutorial panel is removed. The tutorial is `tutorial/TUTORIAL.md`.
+This parent revision pins published device-grid submodule
+`898e28a0504ff9f38e0bd525e5931eed3c8bfa5a`. The existing volume has the matching
+source overlay while preserving its older Git metadata and unrelated edits.
+The dependency image is unchanged because source and extensions live in `/config`.
+The extension is not workspace-scoped: other repo windows in the same code-server
+instance can consume MedTech launch requests. Use independent volumes/containers
+for other demos until workspace-only activation and request handling are added.
+
 ## Prerequisites and files to share
 
 - Docker Engine or Docker Desktop running Linux containers. On Apple Silicon,
@@ -69,7 +81,7 @@ An image rollback alone does not restore workspace source. Restore that volume
 backup to a separate volume for exact pre-upgrade workspace recovery.
 
 The parent pins published web-only submodule commit
-`e072dfd2197e5fe8155ff06025233dd02f7c1618`; no source overlay is needed for that
+`898e28a0504ff9f38e0bd525e5931eed3c8bfa5a`; no source overlay is needed for that
 revision. Older desktop source pins are incompatible with this recipe. The
 Dockerfile deliberately does not bundle source or executables;
 prebuilt startup remains future work. Use the web tag consistently to retain
@@ -224,7 +236,9 @@ cd /config/workspace
 The first launch builds Linux C++ applications and generated Python types.
 The launcher automatically uses `/opt/medtech-venv`; do not
 create a replacement virtual environment or install another Connext wheel.
-Open the four device proxy URLs printed by the launcher in browser tabs.
+Reload the browser IDE after extension installation/update, then launch once.
+The four device tabs open in a 2x2 editor grid: Arm Controller / Orchestrator
+above Arm / Patient Monitor. The printed proxy URLs remain browser fallbacks.
 
 No desktop `code` CLI, Node package installation, noVNC display, or additional
 published port is needed. This is a Markdown tutorial, not a registered hosted
@@ -233,16 +247,17 @@ Connext Studio template.
 ## 5. Clean-install acceptance checks
 
 - The Markdown tutorial contains ten steps with working source-file links.
-- Arm Controller, Arm, Orchestrator, and Patient Monitor load in browser tabs.
+- No tutorial panel or tutorial activity-bar icon appears.
+- Arm Controller / Orchestrator appear above Arm / Patient Monitor in the editor grid.
   Patient Sensor is headless; all five DDS applications should be running.
 - The Orchestrator reports connected devices, and patient vitals update.
-- Closing a browser tab leaves its application running. Send `Shut Down` from the
-  Orchestrator or terminate a verified device PID to exercise failure detection.
-- Orchestrator `Start` resumes paused devices; use the restart script to recover
-  exited applications, then refresh their browser tabs.
+- Closing a device editor tab stops its process; the Orchestrator reports it OFF.
+  Ordinary browser-tab closure in `--web` mode leaves its application running.
+- Orchestrator `Start` resumes paused devices or recovers stopped devices into
+  their original grid slots without replacing surviving tabs.
 - The terminal prompt returns after setup while the demo runs in the background;
   the launcher prints its PID and log file path. `./tutorial/stop_all.sh` stops the
-  demo without closing browser tabs. Use
+  demo and closes device editor tabs (ordinary browser tabs remain). Use
   `./tutorial/restart_all.sh` to verify a second clean start.
 
 Use the same **IDE terminal**, or a new one if the original terminal is lost:
