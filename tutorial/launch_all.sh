@@ -91,26 +91,18 @@ if [[ "$cloud_mode" != 1 && "${launch_args[0]:-}" == --vscode ]]; then
   "$code_cli" "$ROOT_DIR"
 fi
 
-cleanup() {
-  echo
-  echo "Shutting down Digital Operating Room..."
-  if [[ -n "${DEMO_PID:-}" ]] && kill -0 "$DEMO_PID" 2>/dev/null; then
-    pkill -TERM -P "$DEMO_PID" 2>/dev/null || true
-    kill -TERM "$DEMO_PID" 2>/dev/null || true
-    wait "$DEMO_PID" 2>/dev/null || true
-  fi
-}
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
-
 if [[ "$ui_mode" == --vscode ]]; then
   (cd "$REPO_DIR" && python3 -c 'import os; from launch import _open_vscode_uri; _open_vscode_uri("vscode://rti.medtech-web-tabs/tutorial?secure=" + os.environ["MEDTECH_SECURITY"])')
   echo "Opening the Tutorial side panel and four device tabs in VS Code."
 fi
 
 echo "Starting Digital Operating Room demo in the background..."
-"$SCRIPT_DIR/run_digital_or.sh" --launch-only "${launch_args[@]}" &
+DEMO_LOG=$(mktemp "${TMPDIR:-/tmp}/medtech-digital-or.XXXXXX")
+nohup "$SCRIPT_DIR/run_digital_or.sh" --launch-only "${launch_args[@]}" >"$DEMO_LOG" 2>&1 </dev/null &
 DEMO_PID=$!
+disown "$DEMO_PID"
 
-wait "$DEMO_PID"
+echo "Demo supervisor PID: $DEMO_PID"
+echo "Demo log: $DEMO_LOG"
+echo "Stop: $SCRIPT_DIR/stop_all.sh"
+echo "Restart: $SCRIPT_DIR/restart_all.sh"

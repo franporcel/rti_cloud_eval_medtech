@@ -251,10 +251,12 @@ Connext Studio template.
 - A tutorial **Open File** action opens the file in the editor, not an external tab.
 - Closing the Arm device editor stops that app and the Orchestrator reports the
   disconnect. **Restore** restarts only Arm and restores the four-panel grid.
-- Ctrl+C in the launch terminal stops the demo, including restored devices, and
-  closes its device panels. Run the launcher again to verify a second clean start.
+- The terminal prompt returns after setup while the demo runs in the background;
+  the launcher prints its PID and log file path. `./tutorial/stop_all.sh` stops the
+  demo, including restored devices, and closes its device panels. Use
+  `./tutorial/restart_all.sh` to verify a second clean start.
 
-If the original terminal is lost, use a new **IDE terminal**:
+Use the same **IDE terminal**, or a new one if the original terminal is lost:
 
 ```bash
 cd /config/workspace

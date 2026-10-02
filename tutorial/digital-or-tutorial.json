@@ -20,7 +20,7 @@
       "title": "Introduction",
       "body": [
         "Connext lets every device in a medical system share data by publishing and subscribing to well-defined Topics \u2014 the same pattern you saw in the Publish-Subscribe tutorial, now applied to a safety-critical environment.",
-        "In a real hospital, an operating room is a network of independent devices \u2014 vitals monitors, surgical robots, infusion pumps \u2014 built by different vendors, on different platforms, that must interoperate reliably. RTI Connext is designed exactly for this problem."
+        "In a real hospital, an operating room is a network of independent devices \u2014 vitals monitors, surgical robots, infusion pumps \u2014 built by different vendors, on different platforms, that must interoperate reliably. RTI Connext is designed exactly to help resolve problem."
       ],
       "background": [
         "The MedTech Reference Architecture defines all system Data Types, QoS, Domains, and Topics once in XML, separate from application code and language.",
@@ -30,7 +30,7 @@
       "whatWellBuild": {
         "description": "We'll run a simulated Digital Operating Room with 5 interactive applications:",
         "items": [
-          "Patient Sensor \u2014 publishes simulated patient vitals",
+          "Patient Sensor \u2014 publishes simulated patient vitals. This is an application that runs in the bacground with no GUI",
           "Patient Monitor \u2014 subscribes to vitals and displays a live waveform",
           "Arm \u2014 a simulated 5-motor surgical robot arm",
           "Arm Controller \u2014 sends motor commands and shows system alerts",

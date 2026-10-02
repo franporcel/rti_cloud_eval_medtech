@@ -23,8 +23,10 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
   tabs alongside the native VS Code tutorial sidebar.
 - **`run_digital_or.sh`** — helper used by `launch_all.sh`; also supports standalone demos
   after the submodule is initialized.
-- **`stop_all.sh`** — stops this checkout's demo apps and launchers from another terminal,
+- **`stop_all.sh`** — stops this checkout's background demo apps and launchers,
   including restored or orphaned devices; leaves the browser IDE and container running.
+- **`restart_all.sh`** — stops the demo, then launches it again; accepts the same
+  options as `launch_all.sh` and defaults to cloud mode.
 - **`tutorial_gui.py`** — a standalone PySide6 GUI that reads
   `digital-or-tutorial.json` and guides you through all 10 steps with Previous/Next
   navigation and buttons to open the referenced source files. It runs locally beside the
@@ -57,7 +59,9 @@ cd cloud_eval_medical
 Run from the repository root with licensed Connext 7.7 installed. The script initializes the
 pinned submodule, prepares a virtual environment, builds C++ and Python type support, and
 starts the four web UIs in VS Code tabs plus a headless Patient Sensor. It opens the tutorial
-sidebar alongside them. Pressing Ctrl+C in the launch terminal stops the demo.
+sidebar alongside them. After setup, the demo runs in the background and the terminal
+prompt returns. The launcher prints the supervisor PID and log file path. Use
+`./tutorial/stop_all.sh` to stop it or `./tutorial/restart_all.sh --vscode` to restart it.
 In VS Code mode, closing a device tab kills its DDS process so the Orchestrator
 can detect the disconnect. Closing a plain browser tab in `--web` mode does not stop the app.
 
@@ -108,10 +112,19 @@ and `MEDTECH_CODE_SERVER_EXTENSIONS` if its extension directory differs from
 `/config/extensions`. Hosted deployments with a URL prefix need matching proxy
 routing integration.
 
-Press Ctrl+C in the launch terminal to stop the demo, including restored devices,
-and close its device tabs. If that terminal is lost, open another IDE terminal and
-run `./tutorial/stop_all.sh` from `/config/workspace`. It targets only this checkout's
+After setup, the terminal prompt returns while the demo runs in the background.
+The launcher prints the supervisor PID and log file path; closing the terminal does
+not stop the demo. Run `./tutorial/stop_all.sh` from `/config/workspace` to stop the
+demo, including restored devices, and close its device tabs. It targets only this checkout's
 processes owned by your user and is safe to run again when nothing is running.
+To stop and relaunch in one command, run:
+
+```bash
+./tutorial/restart_all.sh
+```
+
+Pass `--vscode` for desktop VS Code or `--web` for standalone browser tabs;
+add `--secure` when needed. Restart also returns the terminal prompt after setup.
 Do not launch a second copy while the first is running. A ports-already-in-use error
 means an existing launch must first be stopped.
 This is a bundled tutorial view, not registration as a hosted Connext Studio template.
