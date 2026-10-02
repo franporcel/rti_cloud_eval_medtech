@@ -1,34 +1,29 @@
 #!/usr/bin/env bash
-# Launches the Digital Operating Room web apps and the VS Code tutorial sidebar.
+# Launches the Digital Operating Room web apps.
 #
-# Usage: ./launch_all.sh [--secure] [--cloud|--vscode|--web] (cloud by default)
+# Usage: ./launch_all.sh [--secure] [--cloud|--web] (cloud by default)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_DIR="$ROOT_DIR/medtech-reference-architecture"
-launch_args=(--vscode)
-ui_mode=--vscode
+launch_args=(--web)
 cloud_mode=1
-export MEDTECH_SECURITY=0
 for arg in "$@"; do
   case "$arg" in
-    --secure) launch_args+=(--secure); export MEDTECH_SECURITY=1 ;;
-    --vscode) launch_args=(--vscode "${launch_args[@]:1}"); ui_mode=--vscode; cloud_mode=0 ;;
-    --web) launch_args=(--web "${launch_args[@]:1}"); ui_mode=--web; cloud_mode=0 ;;
+    --secure) launch_args+=(--secure) ;;
+    --web) cloud_mode=0 ;;
     --native)
-      echo "error: native device GUIs were removed; use VS Code tabs, --web, or --cloud." >&2
+      echo "error: native device GUIs were removed; use --web or --cloud." >&2
       exit 2
       ;;
-    --cloud) launch_args=(--vscode "${launch_args[@]:1}"); ui_mode=--vscode; cloud_mode=1 ;;
+    --cloud) cloud_mode=1 ;;
     *) echo "error: unknown option $arg" >&2; exit 2 ;;
   esac
 done
-export MEDTECH_UI_MODE="$ui_mode"
 export MEDTECH_CLOUD="$cloud_mode"
 
-if [[ "$ui_mode" != --native ]]; then
-  python3 - <<'PY'
+python3 - <<'PY'
 import socket
 
 busy = []
@@ -45,7 +40,6 @@ if busy:
     raise SystemExit("error: demo ports already in use: " + ", ".join(busy)
                      + ". Stop the existing demo before launching another one.")
 PY
-fi
 
 expected_commit=$(git -C "$ROOT_DIR" rev-parse :medtech-reference-architecture)
 if [[ -e "$REPO_DIR/.git" ]]; then
@@ -59,41 +53,16 @@ fi
 echo "Initializing MedTech at $expected_commit..."
 git -C "$ROOT_DIR" submodule update --init --recursive -- medtech-reference-architecture
 
-if [[ "$cloud_mode" == 1 ]]; then
-  extension_dir="${MEDTECH_CODE_SERVER_EXTENSIONS:-/config/extensions}/rti.medtech-web-tabs-0.1.0"
-  mkdir -p "$extension_dir"
-  for file in package.json extension.js tutorial-view.js tutorial.svg; do
-    cp "$REPO_DIR/vscode-extension/$file" "$extension_dir/$file"
-  done
-  echo "MedTech tutorial extension installed. Reload the browser IDE once if its Tutorial view is not visible."
-elif [[ "${launch_args[0]:-}" == --vscode ]]; then
-  if command -v code >/dev/null 2>&1; then
-    code_cli=$(command -v code)
-  elif [[ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]]; then
-    code_cli="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-  else
-    echo "error: VS Code CLI not found; install it or run with --web." >&2
-    exit 1
-  fi
-  if ! command -v npx >/dev/null 2>&1; then
-    echo "error: Node.js/npx is required to package the VS Code extension." >&2
-    exit 1
-  fi
-  echo "Installing MedTech VS Code extension..."
-  (cd "$REPO_DIR/vscode-extension" && npx --yes @vscode/vsce package --allow-missing-repository --skip-license &&
-    "$code_cli" --install-extension "$(pwd)/medtech-web-tabs-0.1.0.vsix" --force)
-fi
-
 "$SCRIPT_DIR/run_digital_or.sh" --setup-only
 source "${MEDTECH_VENV:-$REPO_DIR/.venv}/bin/activate"
 
-if [[ "$cloud_mode" != 1 && "${launch_args[0]:-}" == --vscode ]]; then
-  "$code_cli" "$ROOT_DIR"
-fi
-
-if [[ "$ui_mode" == --vscode ]]; then
-  (cd "$REPO_DIR" && python3 -c 'import os; from launch import _open_vscode_uri; _open_vscode_uri("vscode://rti.medtech-web-tabs/tutorial?secure=" + os.environ["MEDTECH_SECURITY"])')
-  echo "Opening the Tutorial side panel and four device tabs in VS Code."
+echo "Tutorial: $SCRIPT_DIR/TUTORIAL.md"
+if [[ "$cloud_mode" == 1 ]]; then
+  cloud_url="${MEDTECH_CLOUD_URL:-http://127.0.0.1:8080}"
+  echo "Orchestrator: ${cloud_url%/}/proxy/8090/"
+  echo "Arm Controller: ${cloud_url%/}/proxy/8091/"
+  echo "Arm: ${cloud_url%/}/proxy/8092/"
+  echo "Patient Monitor: ${cloud_url%/}/proxy/8093/"
 fi
 
 echo "Starting Digital Operating Room demo in the background..."

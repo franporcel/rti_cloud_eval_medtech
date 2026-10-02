@@ -57,10 +57,9 @@ Added filesystem layers over the base are only 20,504,576 bytes, down from
 these are storage/layer metrics, not compressed registry downloads.
 
 A clean cloud-helper build and real five-app runtime passed, including all four
-APIs/assets, fresh DDS vitals, and pause/resume commands. The deployed launcher
-also passed browser verification of the tutorial sidebar, four live 2x2 editor
-views, and Arm tab-close/Restore. Test apps were stopped; the IDE remains running.
-This was an existing-volume test, not a fresh-volume hosted provisioning test.
+APIs/assets, fresh DDS vitals, and pause/resume commands. That existing-volume test
+predates the Markdown-only tutorial; fresh-volume hosted provisioning and browser
+acceptance of the current launcher still require validation.
 
 The previous slim container is stopped as
 `medical-playground-pre-web-2026-10-01T23-04-54-527Z`. All retained containers share
@@ -70,9 +69,9 @@ An image rollback alone does not restore workspace source. Restore that volume
 backup to a separate volume for exact pre-upgrade workspace recovery.
 
 The parent pins published web-only submodule commit
-`6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c`; no source overlay is needed for that
+`e072dfd2197e5fe8155ff06025233dd02f7c1618`; no source overlay is needed for that
 revision. Older desktop source pins are incompatible with this recipe. The
-Dockerfile deliberately does not bundle source, executables, or extensions;
+Dockerfile deliberately does not bundle source or executables;
 prebuilt startup remains future work. Use the web tag consistently to retain
 the historical image tags.
 
@@ -89,7 +88,7 @@ Validation included real Python app imports with Addons absent, a fresh CMake/C+
 build via the cloud setup helper, and all five DDS apps on an isolated Docker
 network. All four HTTP APIs responded, all devices reported ON, and Patient
 Monitor received fresh vitals. The existing user demo was not stopped or modified.
-The browser sidebar/grid was not re-tested in a fresh slim-image IDE session.
+The browser UIs were not re-tested in a fresh slim-image IDE session.
 
 The original exported image backup contains the historical image, not the slim
 or web-only images. See `baseline.json` for their separate identities.
@@ -103,7 +102,7 @@ and launch once when ready. The previous container is retained, stopped, as
 the same workspace volume: never run them simultaneously. This retained-container
 upgrade is not a fresh-volume browser-UI acceptance test.
 
-The demo source, bundled VS Code extension, Linux executables, and generated Python
+The demo source, Markdown tutorial, Linux executables, and generated Python
 types live in the container's `/config` volume, **not** in the original archive.
 Do not copy a host's `.venv` or build directory into a clean Linux installation.
 
@@ -179,7 +178,7 @@ required by the image's s6 startup. Publish only the IDE port; device ports
 
 Use a directory that does not already exist. Pin the clean clone to the parent
 revision of this reviewed recipe checkout; its submodule includes the web-only
-apps, native sidebar, and grid. Run from this runbook's `docker/` directory:
+apps. Run from this runbook's `docker/` directory:
 
 ```bash
 REVIEWED_PARENT_REVISION=$(git -C .. rev-parse HEAD)
@@ -197,22 +196,14 @@ docker exec --user root medical-playground chown -R 911:1001 /config/workspace
 ```
 
 The `medtech-reference-architecture` submodule revision should be
-`6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c`, without a leading `+` or `-`.
+`e072dfd2197e5fe8155ff06025233dd02f7c1618`, without a leading `+` or `-`.
 Record `REVIEWED_PARENT_REVISION` with the image build so later clones reproduce
 the same source rather than following a moving branch tip. A future reviewed
 parent revision may intentionally select a different submodule commit.
 
-Preinstall the bundled extension **before opening the browser IDE for the first
-time**:
+Check the preinstalled Python runtime:
 
 ```bash
-docker exec --user abc medical-playground /bin/bash -c '
-  src=/config/workspace/medtech-reference-architecture/vscode-extension
-  dst=/config/extensions/rti.medtech-web-tabs-0.1.0
-  mkdir -p "$dst"
-  cp "$src"/{package.json,extension.js,tutorial-view.js,tutorial.svg} "$dst"/
-'
-
 docker exec --user abc medical-playground /opt/medtech-venv/bin/python -c \
   'import rti.connextdds, argcomplete, stun, requests; print("Python dependencies OK")'
 ```
@@ -221,8 +212,7 @@ docker exec --user abc medical-playground /opt/medtech-venv/bin/python -c \
 
 Open <http://127.0.0.1:8080/?folder=/config/workspace> and accept Workspace Trust
 for this known project. Use the base image's configured login if prompted; do not
-disable authentication. If you opened the IDE before installing the extension,
-run **Developer: Reload Window** before launching.
+disable authentication. Open `tutorial/TUTORIAL.md` in the Markdown preview.
 
 **IDE terminal:**
 
@@ -231,29 +221,28 @@ cd /config/workspace
 ./tutorial/launch_all.sh --cloud
 ```
 
-The first launch builds Linux C++ applications and generated Python types. Leave
-its terminal open. The launcher automatically uses `/opt/medtech-venv`; do not
+The first launch builds Linux C++ applications and generated Python types.
+The launcher automatically uses `/opt/medtech-venv`; do not
 create a replacement virtual environment or install another Connext wheel.
-The Digital Operating Room activity icon opens the native tutorial side panel.
-If it is missing, reload the window. Use one IDE window for the initial test;
-select the tutorial icon in the intended window if multiple windows are open.
+Open the four device proxy URLs printed by the launcher in browser tabs.
 
 No desktop `code` CLI, Node package installation, noVNC display, or additional
-published port is needed. This is a bundled tutorial view, not a registered hosted
+published port is needed. This is a Markdown tutorial, not a registered hosted
 Connext Studio template.
 
 ## 5. Clean-install acceptance checks
 
-- The tutorial contains ten steps in the native VS Code side panel.
-- Arm Controller, Arm, Orchestrator, and Patient Monitor occupy a 2x2 editor grid.
+- The Markdown tutorial contains ten steps with working source-file links.
+- Arm Controller, Arm, Orchestrator, and Patient Monitor load in browser tabs.
   Patient Sensor is headless; all five DDS applications should be running.
 - The Orchestrator reports connected devices, and patient vitals update.
-- A tutorial **Open File** action opens the file in the editor, not an external tab.
-- Closing the Arm device editor stops that app and the Orchestrator reports the
-  disconnect. **Restore** restarts only Arm and restores the four-panel grid.
+- Closing a browser tab leaves its application running. Send `Shut Down` from the
+  Orchestrator or terminate a verified device PID to exercise failure detection.
+- Orchestrator `Start` resumes paused devices; use the restart script to recover
+  exited applications, then refresh their browser tabs.
 - The terminal prompt returns after setup while the demo runs in the background;
   the launcher prints its PID and log file path. `./tutorial/stop_all.sh` stops the
-  demo, including restored devices, and closes its device panels. Use
+  demo without closing browser tabs. Use
   `./tutorial/restart_all.sh` to verify a second clean start.
 
 Use the same **IDE terminal**, or a new one if the original terminal is lost:

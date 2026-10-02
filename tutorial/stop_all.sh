@@ -3,7 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 python3 - "$SCRIPT_DIR/.." <<'PY'
-import json
 import os
 from pathlib import Path
 import re
@@ -11,16 +10,13 @@ import shlex
 import signal
 import subprocess
 import sys
-import tempfile
 import time
-import uuid
 
 root = Path(sys.argv[1]).resolve()
 repo = root / "medtech-reference-architecture"
 scripts = {
     root / "tutorial" / "launch_all.sh",
     root / "tutorial" / "run_digital_or.sh",
-    root / "tutorial" / "tutorial_gui.py",
     repo / "modules" / "01-operating-room" / "src" / "Arm.py",
     repo / "modules" / "01-operating-room" / "src" / "PatientMonitor.py",
 }
@@ -54,7 +50,7 @@ def targets():
             if not arguments or arguments[0].startswith("-"):
                 continue
             candidate = Path(arguments[0])
-            if candidate.name not in ("launch_all.sh", "run_digital_or.sh", "tutorial_gui.py", "launch.py", "Arm.py", "PatientMonitor.py", "ArmController", "Orchestrator", "PatientSensor"):
+            if candidate.name not in ("launch_all.sh", "run_digital_or.sh", "launch.py", "Arm.py", "PatientMonitor.py", "ArmController", "Orchestrator", "PatientSensor"):
                 continue
             if not candidate.is_absolute():
                 if sys.platform.startswith("linux"):
@@ -94,14 +90,6 @@ while remaining and time.monotonic() < deadline:
     if remaining:
         time.sleep(0.1)
 stop(remaining, signal.SIGKILL)
-
-if Path("/app/code-server").is_dir():
-    requests = Path(tempfile.gettempdir()) / f"medtech-web-tabs-{os.getuid()}" / "requests"
-    requests.mkdir(parents=True, exist_ok=True)
-    request = requests / f"{time.time_ns()}-{uuid.uuid4().hex}.json"
-    pending = request.with_suffix(".tmp")
-    pending.write_text(json.dumps({"uri": "vscode://rti.medtech-web-tabs/close"}))
-    pending.replace(request)
 
 print(f"Stopped {len(selected)} Digital Operating Room process(es)." if selected else "No Digital Operating Room processes running.")
 PY

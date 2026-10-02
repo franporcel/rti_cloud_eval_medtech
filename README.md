@@ -1,6 +1,6 @@
 # Digital Operating Room Cloud Eval Handoff
 
-This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins the compact web UI and shutdown recovery commit `6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
+This repo contains the [Digital Operating Room tutorial](tutorial/TUTORIAL.md) and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with browser-based device UIs. Use the pinned submodule commit, not the branch tip.
 
 ## Cloud Image And Recovery
 
@@ -10,8 +10,8 @@ identities, port-8080 clean-install procedure, acceptance checks, and image plus
 workspace-volume backup/restore commands. Use `docker/` as the canonical image
 recipe, not the historical sibling directory. Licensed archives and volume
 backups must be kept in authorized external storage; they are not included in Git.
-The cloud tutorial uses a native VS Code side panel and four live editor-grid UIs,
-without a desktop tutorial window or noVNC display. Module 01 no longer needs GTK,
+The tutorial is a Markdown file, and the four device UIs run in browser tabs,
+without a tutorial panel, desktop window, or noVNC display. Module 01 no longer needs GTK,
 Qt, NumPy or pyqtgraph, even when building from source. The deployed web-only image
 is 7.07 GB by Docker's storage metric; only 20.5 MB of filesystem layers are added
 over the original Playground base. Historical desktop measurements and future
@@ -25,12 +25,11 @@ There are two different dependency sets: **building from source** and **running 
 
 These belong on a developer machine or in a CI/builder image, not necessarily in the user workspace:
 
-- Git (access to this Bitbucket repo and the public GitHub MedTech submodule), Bash, and network access to PyPI and npm for the first run.
+- Git (access to this Bitbucket repo and the public GitHub MedTech submodule), Bash, and network access to PyPI for the first run.
 - Licensed RTI Connext DDS Professional 7.7.0, including its C++ libraries, build tools, and the `rti.connext.activated` Python wheel under `$NDDSHOME/resource/python_api`. Set `NDDSHOME` and source the matching `rtisetenv_<arch>` script; the launcher auto-detects `/Applications/rti_connext_dds-7.7.0` on macOS. The script cannot download or license Connext.
 - Python 3.10+ with `pip` and `venv`; CMake 3.17+; and a C++17 compiler. GTK development libraries and `pkg-config` are not needed by Module 01.
-- For packaging the bundled VS Code extension: Node.js with `npx` (which downloads `@vscode/vsce`). A prepackaged VSIX avoids this setup dependency in the user workspace.
 
-On Ubuntu/Debian, install the system build packages with `sudo apt install build-essential cmake python3-venv`; install Python, Git, Node.js, and VS Code separately if absent. On macOS, install the Xcode command-line tools and use `brew install cmake python3 git node`; install VS Code separately.
+On Ubuntu/Debian, install the system build packages with `sudo apt install build-essential cmake python3-venv`; install Python and Git separately if absent. On macOS, install the Xcode command-line tools and use `brew install cmake python3 git`.
 
 ### Runtime Dependencies
 
@@ -38,8 +37,8 @@ These remain necessary with the current application code, even if the C++ applic
 
 - Python 3.10+ and the installed Python packages listed below, including the Connext 7.7.0 Python API. `pip` and `venv` are provisioning tools, not application requirements once the environment is prepared.
 - The Connext C++ shared libraries used by the binaries, compatible OS/C++ runtime libraries, and the required runtime licensing configuration. Precompilation does not remove licensing requirements; a runtime-only Connext layout and redistribution rights must be validated with RTI.
-- No GTK/Qt/display stack is needed for Module 01. Its C++ binaries no longer link GTK, and its Python backends no longer import desktop libraries. The normal tutorial is a VS Code sidebar; the old standalone Qt tutorial is optional and requires separately installed PySide6.
-- For the default local VS Code tab mode: VS Code 1.100+ with the `code` CLI and the bundled extension. On macOS, the launcher also detects the CLI in the standard VS Code app bundle. `--web` does not need VS Code or Node.js. `--native` is no longer supported. The existing-volume code-server sidebar/grid workflow has been tested; hosted template provisioning still requires platform validation.
+- No GTK/Qt/display stack is needed for Module 01. Its C++ binaries no longer link GTK, and its Python backends no longer import desktop libraries.
+- A browser for the device UIs and a Markdown viewer for the tutorial. Cloud mode uses the existing code-server proxy; `--web` opens local browser tabs. Native device windows are no longer supported. Hosted template provisioning still requires platform validation.
 
 The local launcher creates a virtual environment and installs the MedTech Python requirements: `argcomplete>=3.1`, `pystun3>=2.0`, and `requests>=2.31`. It installs `rti.connext.activated` from the local Connext installation separately. Cloud mode checks the preinstalled environment instead. Module 04's optional desktop threat tools have their own requirements file and are not supported by this web-only image. Python transitive dependencies are resolved by `pip`.
 
@@ -65,9 +64,6 @@ The following are historical **installed disk footprints**, not RAM use or compr
 | argcomplete | Install into environment | Keep for current launcher | 0.25 MiB measured |
 | pystun3 | Install into environment | Keep for current launcher | 0.03 MiB measured `stun` package |
 | requests | Install into environment | Keep for current launcher | 0.57 MiB measured, excluding transitive dependencies |
-| Node.js/npm/npx | VSIX packaging | Not needed for the packaged extension itself | 79 MiB measured Node package; `vsce` downloads/cache extra |
-| VS Code | Local extension installation/use | Only for VS Code tab experience | 1.4 GiB measured desktop app; hosted IDE already supplied by platform, whose incremental cost must be measured separately |
-| MedTech Web Tabs VSIX | Build once | Install if using VS Code tabs | 12 KiB measured |
 | Display/remote desktop stack | Not needed to compile | Not needed by the normal tutorial | Historical 100-300 MiB Linux budget for Xvfb/VNC/noVNC, browser excluded |
 
 The original desktop Python virtual environment measured **1.3 GiB**, and its all-module build directory measured **20 MiB** (includes build intermediates, not just deliverable binaries). These overlap the table entries: do not add them again. The SDK contains the C++ library and wheel directories, and many system libraries are shared. A deployment also needs application source/assets, generated `Types.py`, and XML configuration. A Linux runtime image total cannot be inferred by summing these Mac measurements.
@@ -76,14 +72,14 @@ The original desktop Python virtual environment measured **1.3 GiB**, and its al
 
 The web-only recipe adds about 20.5 MB of filesystem layers over the base. The original Playground image dominates the total footprint. Precompilation can additionally remove per-session builds; that startup optimization has not been implemented.
 
-Recommended candidate: build in CI using a multi-stage container build, then copy the Linux/architecture-compatible Module 01 binaries, generated Python types, source/assets/configuration, installed Python environment, audited shared-library closure, and packaged VSIX into a versioned runtime image. Keep the compiler, SDK build tools, headers, package caches, and unrelated modules in the builder stage. Build and runtime must match the target OS, CPU architecture, ABI, Python version, and Connext version; the local Mac binaries are not Linux deliverables.
+Recommended candidate: build in CI using a multi-stage container build, then copy the Linux/architecture-compatible Module 01 binaries, generated Python types, source/assets/configuration, installed Python environment, audited shared-library closure, and Markdown tutorial into a versioned runtime image. Keep the compiler, SDK build tools, headers, package caches, and unrelated modules in the builder stage. Build and runtime must match the target OS, CPU architecture, ABI, Python version, and Connext version; the local Mac binaries are not Linux deliverables.
 
 Two deployment options need platform-team agreement:
 
 - **Dedicated runtime workspace image:** simplest co-location of apps and IDE, but still a second image to maintain, patch, distribute, and prewarm. It requires platform support and is not just a new workspace definition.
 - **Application container alongside the existing workspace:** could keep application build/runtime packages out of the base IDE image, but shifts their size into another image rather than eliminating it. Requires supported container orchestration, browser port routing for 8090-8093, DDS networking/discovery configuration, licensing, and process lifecycle management. Do not assume users can start Docker inside the workspace or that DDS discovery works across container networks by default.
 
-Neither prebuilt packaging option is supplied by this repository today. `launch_all.sh` still updates the submodule, installs the extension, and runs the build. Local setup installs Python packages and packages the VSIX; cloud mode reuses the image environment and copies the bundled extension files. For a provisioned environment, `./tutorial/run_digital_or.sh --launch-only --web` skips setup/build and launches only the demo; it still expects the configured virtual environment, `NDDSHOME`, compatible binaries, generated types, configuration, and runtime libraries. A runtime-only image needs a validated entrypoint and layout rather than invoking `launch_all.sh` unchanged.
+Neither prebuilt packaging option is supplied by this repository today. `launch_all.sh` still initializes the submodule and runs the build. Local setup installs Python packages; cloud mode reuses the image environment. For a provisioned environment, `./tutorial/run_digital_or.sh --launch-only --web` skips setup/build and launches only the demo; it still expects the configured virtual environment, `NDDSHOME`, compatible binaries, generated types, configuration, and runtime libraries. A runtime-only image needs a validated entrypoint and layout rather than invoking `launch_all.sh` unchanged.
 
 Before committing to either option, measure on the actual Linux base image: dependency-by-dependency incremental installed size, compressed registry layers to pull, uncompressed image size, and cold versus warm time to the first usable tutorial and all four responsive web UIs. Compare against the base workspace and separate image pull/unpack, provisioning, and application startup. Preinstalling removes session downloads/builds; larger uncached layers can still increase cold startup significantly. Reusing cached base layers and prewarming may help, but no startup-time claim is established yet. Pin the final Python/system dependencies and image digest so size, startup, and maintenance costs are reproducible.
 
@@ -92,15 +88,15 @@ Before committing to either option, measure on the actual Linux base image: depe
 ```bash
 git clone --recurse-submodules ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git
 cd cloud_eval_medical
-./tutorial/launch_all.sh --vscode
+./tutorial/launch_all.sh --web
 ```
 
-The single launch command also works after a plain `git clone`: it initializes the MedTech submodule at the pinned commit if missing, installs the bundled VS Code extension, creates a virtual environment, installs the Python requirements and Connext Python wheel, builds the C++ apps and Python types, and launches the Digital OR applications in VS Code tabs alongside the tutorial sidebar. The submodule checkout is never advanced to the latest branch tip. Existing tracked changes in a checkout at another commit block the update rather than being discarded.
+The single launch command also works after a plain `git clone`: it initializes the MedTech submodule at the pinned commit if missing, creates a virtual environment, installs the Python requirements and Connext Python wheel, builds the C++ apps and Python types, and launches the Digital OR applications in browser tabs. Open [tutorial/TUTORIAL.md](tutorial/TUTORIAL.md) for the guided steps. The submodule checkout is never advanced to the latest branch tip. Existing tracked changes in a checkout at another commit block the update rather than being discarded.
 
-Without a mode flag, `./tutorial/launch_all.sh` defaults to cloud/code-server mode; `--cloud` remains an explicit alias. Use `--vscode` for desktop VS Code or `--web` for standalone browser tabs; native device windows have been removed. Add `--secure` only after generating the security artifacts described in the MedTech README. After setup, the demo runs in the background and the terminal prompt returns; the launcher prints its PID and log file path. Use `./tutorial/stop_all.sh` to stop it or `./tutorial/restart_all.sh` to restart it with the same mode options. Direct foreground demo-only startup remains available with `./tutorial/run_digital_or.sh --vscode` after the submodule is initialized.
+Without a mode flag, `./tutorial/launch_all.sh` defaults to cloud/code-server mode and prints device proxy URLs; `--cloud` remains an explicit alias. Use `--web` for local browser tabs. Add `--secure` only after generating the security artifacts described in the MedTech README. After setup, the demo runs in the background and the terminal prompt returns; the launcher prints its PID and log file path. Use `./tutorial/stop_all.sh` to stop it or `./tutorial/restart_all.sh` to restart it with the same mode options. Direct foreground demo-only startup remains available with `./tutorial/run_digital_or.sh --web` after the submodule is initialized.
 
 ## Verify a clean clone
 
-From a fresh clone, check that `git submodule status` reports `6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c` without a leading `-` or `+`. Check for four web UI tabs, a PatientSensor process, and a sidebar showing ten tutorial steps. The first run builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh --vscode` locally, or `./tutorial/launch_all.sh` in the cloud workspace, to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
+From a fresh clone, check that `git submodule status` reports the pinned commit without a leading `-` or `+`. Check for four responsive browser UIs, a PatientSensor process, and the ten steps in [tutorial/TUTORIAL.md](tutorial/TUTORIAL.md). The first run builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh --web` locally, or `./tutorial/launch_all.sh` in the cloud workspace, to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
 
-The tutorial's [content and local usage](tutorial/README.md), [cloud integration constraints](tutorial/INTEGRATION_NOTES.md), and [web extension details](medtech-reference-architecture/vscode-extension/README.md) are documented separately. The prebuilt packaging options above remain proposals. A cloud workspace needs licensed Connext runtime support, the application's runtime dependencies, and hosted UI integration, not a display server. Native build dependencies are needed only if building there. This script prepares a local or suitably provisioned workspace, not a hosted evaluation template.
+The tutorial's [content and local usage](tutorial/README.md) and [cloud integration constraints](tutorial/INTEGRATION_NOTES.md) are documented separately. The prebuilt packaging options above remain proposals. A cloud workspace needs licensed Connext runtime support, the application's runtime dependencies, and authenticated browser port routing, not a display server. Native build dependencies are needed only if building there. This script prepares a local or suitably provisioned workspace, not a hosted evaluation template.

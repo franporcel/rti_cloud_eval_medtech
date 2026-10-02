@@ -1,11 +1,58 @@
 # Cloud evaluation session handoff
 
-Latest verification: 2026-10-02, after compact layouts, enlarged stable arm
-framing, backward-safe shutdown, and heartbeat recovery fixes. Publication is
-recorded below. The current-state sections below supersede older chronological
-update sections.
-Read this before rebuilding, cleaning Docker, or changing the cloud tutorial;
-runtime state can change after this snapshot, so verify it first.
+Latest source update: 2026-10-02, Markdown-only tutorial and bundled extension
+removal. This opening section supersedes every historical workflow below.
+
+## Resume Here: Markdown-Only Tutorial
+
+- [TUTORIAL.md](../tutorial/TUTORIAL.md) is the sole tutorial content. The bundled
+  extension source, generated VSIX, JSON tutorial, standalone PySide6 tutorial,
+  and their extension/GUI tests were removed. There is no tutorial panel.
+- `./tutorial/launch_all.sh` defaults to cloud mode and prints four device URLs
+  using `MEDTECH_CLOUD_URL` (default `http://127.0.0.1:8080`) plus `/proxy/8090/`
+  through `/proxy/8093/`. Open those URLs in browser tabs; no container browser
+  or extension installation is attempted. `--cloud` remains an explicit alias.
+- For local demos, use `./tutorial/launch_all.sh --web` to open browser tabs
+  automatically. `--secure` remains supported after generating security
+  artifacts. The former `--vscode` mode is removed.
+- Browser tab closure does not stop a DDS application. Orchestrator **Start**
+  resumes paused devices but cannot relaunch exited processes. Use
+  `./tutorial/restart_all.sh` (or `--web` locally) to recover stopped devices,
+  then refresh their tabs. Tutorial failure exercises use a verified device PID
+  rather than tab closure. The launch supervisor still handles SIGTERM cleanup.
+- Setup/build, pinned submodule initialization, background launch, supervisor
+  PID/log output, and scoped stop/restart remain supported. The stop helper no
+  longer queues extension tab-close requests.
+- Preserved browser UI regressions now live in
+  `medtech-reference-architecture/modules/01-operating-room/tests/web.test.js`.
+  Checks passed: seven launcher tests (including isolated, idempotent shutdown
+  preserving an unrelated process), four Node UI tests, shell syntax for all
+  four scripts, embedded stop-helper Python syntax, JSON parsing, Markdown
+  source links, and touched-file diagnostics.
+- **Deployment remains pending.** These source changes have not been copied to
+  the running container. Its previously installed extension and existing volume
+  remain unchanged. No image rebuild, container restart, live browser acceptance
+  check, or backup refresh was performed for this change.
+- Before live acceptance, deploy the matching parent/submodule revisions into
+  the preserved workspace, remove only the bundled `rti.medtech-web-tabs`
+  installation, and reload the IDE. Do not remove other extensions. Verify all
+  four authenticated proxy URLs, live DDS data, pause/resume, and stop/restart.
+- Publication: submodule `e072dfd2197e5fe8155ff06025233dd02f7c1618` is published
+  on GitHub's `web-based-tutorial-apps` branch; its remote SHA was verified.
+  The parent commit containing this handoff pins that revision and targets
+  Bitbucket `origin/develop`. Machine-local `.vscode/` settings are excluded.
+  Verify the parent remote SHA against the containing commit after pushing.
+- Remaining platform work: fresh-volume hosted provisioning, image export and
+  approved off-machine backup, cold/warm startup measurements, and a validated
+  prebuilt runtime entrypoint. See the [usage guide](../tutorial/README.md) and
+  [cloud runbook](../docker/README_cloud_eval_image.md).
+
+## Historical Extension Workflow
+
+Everything below records the previous extension-based deployment and its earlier
+verification. Extension, sidebar, editor-grid, tab-close, and automatic recovery
+instructions below are historical, not current setup guidance. Runtime state
+must be rechecked before deployment or Docker operations.
 
 ## Resume here
 

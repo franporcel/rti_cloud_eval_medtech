@@ -2,7 +2,7 @@
 # Sets up, builds, and launches the Digital Operating Room demo (Module 01) from the
 # medtech-reference-architecture repo, for local demos ahead of any cloud eval integration.
 #
-# Usage: ./run_digital_or.sh [--secure] [--vscode] [--setup-only|--launch-only]
+# Usage: ./run_digital_or.sh [--secure] [--web] [--setup-only|--launch-only]
 #
 # Requires: RTI Connext Professional 7.7 installed and licensed locally.
 set -euo pipefail

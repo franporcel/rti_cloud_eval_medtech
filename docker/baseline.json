@@ -33,12 +33,12 @@
     "filesystem_layer_bytes": 3679260672,
     "added_filesystem_layer_bytes_over_base": 20504576,
     "removed_packages": "Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK/gtkmm, Mesa/EGL/LLVM and VNC support are absent from the final image inventory.",
-    "source_status": "Published compact web UI and shutdown recovery submodule commit 6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c is pinned by the parent repository. The live volume retains its own existing gitlink 8847f517bdcebff8ccecc908fdbcd0da851fff22 with the tested files overlaid; its Git metadata was not changed during publication. The dependency image was not rebuilt for these source changes.",
-    "validation": "Fresh cloud-helper Linux build, GUI-free binary linkage, default five-app launch, four APIs/assets, fresh DDS vitals, pause/resume, deployed cloud launcher, browser sidebar and 2x2 embedded grid, Arm tab-close/Restore, and scoped teardown.",
+    "source_status": "Published browser-only submodule commit e072dfd2197e5fe8155ff06025233dd02f7c1618 is pinned by the parent repository. The Markdown-only tutorial and extension removal have not been deployed into the live volume, which retains its prior source overlays and installed extension. The live volume retains its own existing gitlink 8847f517bdcebff8ccecc908fdbcd0da851fff22; its Git metadata was not changed during publication. The dependency image was not rebuilt for these source changes.",
+    "validation": "Historical pre-Markdown-only validation: fresh cloud-helper Linux build, GUI-free binary linkage, default five-app launch, four APIs/assets, fresh DDS vitals, pause/resume, and scoped teardown. Current browser-only launcher has not yet been deployed or live-validated.",
     "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
     "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
   },
-  "medtech_revision": "6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c",
+  "medtech_revision": "e072dfd2197e5fe8155ff06025233dd02f7c1618",
   "connext_python_version": "7.7.0",
   "runtime": {
     "container_name": "medical-playground",
@@ -49,7 +49,6 @@
     "ide_port_mapping": "127.0.0.1:8080:8443",
     "workspace": "/config/workspace",
     "python_environment": "/opt/medtech-venv",
-    "extension_directory": "/config/extensions/rti.medtech-web-tabs-0.1.0",
     "development_volume_at_recording": "medical-playground-cloud-test-config",
     "run_tmpfs": "/run:rw,exec,uid=911,gid=1001,mode=0755",
     "tmp_tmpfs": "/tmp:rw,mode=1777"
