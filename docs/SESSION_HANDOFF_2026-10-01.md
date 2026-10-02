@@ -1,8 +1,9 @@
 # Cloud evaluation session handoff
 
-Latest verification: 2026-10-02, after Orchestrator recovery, recorded UX fixes,
-and cloud-default launcher deployment. Publication is recorded below. The
-current-state sections below supersede older chronological update sections.
+Latest verification: 2026-10-02, after compact layouts, enlarged stable arm
+framing, backward-safe shutdown, and heartbeat recovery fixes. Publication is
+recorded below. The current-state sections below supersede older chronological
+update sections.
 Read this before rebuilding, cleaning Docker, or changing the cloud tutorial;
 runtime state can change after this snapshot, so verify it first.
 
@@ -14,22 +15,30 @@ runtime state can change after this snapshot, so verify it first.
 - Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK, Mesa/EGL/LLVM, and VNC support are
   absent from the image. Latest verification reconfirmed the removed Python
   modules are absent and all device ports 8090-8093 are free.
-- The existing `/config` volume is preserved. Demo apps, including restored Arm,
-  are stopped. To start once, open `http://127.0.0.1:8080/?folder=/config/workspace`
+- The existing `/config` volume is preserved. All original/restored demo apps and
+  launchers are stopped, and all four demo tabs were closed. To start once, open
+  `http://127.0.0.1:8080/?folder=/config/workspace`
   and run `./tutorial/launch_all.sh` from `/config/workspace`. Cloud mode is now
   the default; `--cloud` remains an alias, `--vscode` selects desktop VS Code,
   and `--web` selects standalone browser tabs.
-- The recovery submodule is published as `5ef04beefcef94cfa387704e2ebd0591d4d5da24`.
+- The current submodule is published as `6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c`.
   The parent publication containing this handoff pins it and includes the
-  cloud-default launcher, tutorial/docs, and baseline updates. A clean checkout
+  compact layouts, stable arm, shutdown fixes, and matching baseline/docs pins.
+  A clean checkout
   of this parent publication includes the latest behavior without a source overlay.
 - Recovery now lives in Orchestrator **Start**, not tutorial Restore buttons.
   Start resumes paused devices or relaunches stopped devices and reopens tabs.
   **Digital Operating Room: Open Orchestrator** restores the Orchestrator itself.
-- Latest checks: 18 Node tests on host/Linux, 11 launcher tests on the host,
-  real DDS recovery/cleanup, and 98 captured post-fix browser frames with no
-  surviving-pane blanking or movement. Earlier build/dependency checks remain
-  historical evidence, not newly rerun full-suite results.
+- Latest checks: 20 Node tests on host/Linux, 12 launcher tests on the host,
+  Linux Orchestrator rebuild, focused heartbeat state checks, and live shutdown,
+  recovery, pause/resume, manual closure, and cleanup workflows. The earlier
+  98-frame no-reflow capture remains historical evidence, not a newly rerun check.
+- Grid: Arm Controller / Orchestrator above Arm / Patient Monitor. All four
+  headers are compact and omit visible RTI branding. The arm fills about 74% of
+  its quarter-pane canvas with a fixed base and manual zoom, Fit, and drag-pan.
+- Per-process tab closure uses `/close-owned?closeToken=...`, never token-only
+  `/close`: older extension hosts interpret the latter as closing every tab.
+  Use a real **Developer: Reload Window** after extension updates.
 - Images and workspace source are separate: this dependency image does not bundle
   the source, extension, or built apps. Those remain in `/config`. Publishing Git
   did not rewrite the running volume's existing Git metadata or its tested files.
@@ -41,6 +50,54 @@ runtime state can change after this snapshot, so verify it first.
   host VS Code settings and the generated VSIX remain intentionally untracked.
 
 ## Session summary: 2026-10-02
+
+### Latest compact UI and lifecycle verification
+
+- Viewport-height layouts fit the four editor panes without page scrolling.
+  Controller joint controls sit beside global commands and logs; Orchestrator
+  has 2x2 devices, commands on the right, and full-width logs below; Patient
+  Monitor keeps all four vitals visible. Compact headers omit visible RTI text.
+- Logs compare complete formatted text, so rolling same-count buffers update.
+  Display-only formatting removes known DDS enum prefixes and trailing web-mode
+  text without changing raw API logs. Orchestrator follows each new message;
+  Controller follows only when already at the bottom. Unchanged polls preserve
+  manual scrolling.
+- Arm uses a fixed viewport-based scale/base, not pose-dependent fitting. The
+  default pose occupies 74% of the quarter-pane canvas and 73% on mobile.
+  Explicit zoom, Fit, and drag-pan allow unusual poses to be reframed; normal
+  joint motion never automatically recenters or rescales upstream joints.
+- Reproduced the all-tab shutdown regression against the published older
+  extension: token-only `/close` fell through to global closure. Launchers now
+  emit `/close-owned?closeToken=...` on child exit and partial-launch cleanup.
+  Current handlers reject missing, invalid, or stale tokens; older handlers
+  safely ignore the new endpoint. Explicit full-demo closure remains supported.
+- Rapid restart exposed a heartbeat deadline marking a recovered app OFF
+  permanently. Orchestrator now consumes fresh valid heartbeats and restores
+  the last reported ON/PAUSED status while preserving explicit DDS OFF reports.
+- Passed 20 Node tests on host/Linux and 12 host launcher tests; touched-file
+  diagnostics and whitespace checks are clean. CMake Tools could not configure
+  the host project; the touched Orchestrator target built successfully in the
+  working Linux container. A compiled check of the actual listener covered
+  deadline OFF, ON/PAUSED recovery, explicit OFF, and invalid heartbeat data.
+- Live checks covered original/restored individual shutdowns, all four devices'
+  pause/resume, six rapid restart cycles across the three controlled web apps,
+  two rapid sensor restart cycles, manual close/Start for those three tabs, and
+  manual Orchestrator closure preserving the other three apps. Surviving iframe
+  identities and bounds were unchanged; old app/launcher PIDs were verified gone.
+- Arm canvas pixels, upstream positions, zoom/Fit/pan, and screenshots were
+  checked. Responsive checks passed at 390x420, 520x300, and 1280x800 with no
+  page scrolling or label overflow. The full grid permutation harness was not run.
+- Hidden shared browser pages throttle timers and bridge messages. For automated
+  checks, CDP `Emulation.setFocusEmulationEnabled` made the IDE visible; it was
+  reset afterward. Browser reload alone is not proof of extension-host reload.
+- Deployed source/loose extension files into the preserved volume with `abc:abc`
+  ownership and performed a real IDE Reload Window. No image rebuild, container
+  recreation, backup refresh, or live-volume Git metadata change was performed.
+  Final scoped stop verified no original/restored app or launcher remained and
+  all four tabs were closed; the IDE remains available on port 8080.
+
+The following recovery and recorded-frame sections describe earlier checks.
+The current grid, framing, protocol, and test results above supersede them.
 
 ### Recovery and lifecycle
 
@@ -107,7 +164,7 @@ runtime state can change after this snapshot, so verify it first.
 - `docker cp` preserved host ownership and initially caused extension-copy
   permission errors. After each deployment, copied files were restored to
   `abc:abc` (UID 911/GID 1001). Keep doing this for future source copies.
-- Latest focused validation: 18 Node tests on host and Linux; 11 launcher pytest
+- Earlier focused validation: 18 Node tests on host and Linux; 11 launcher pytest
   tests on host; relevant Python syntax, JavaScript diagnostics, shell routing,
   real DDS workflows, and visual captures. Linux pytest is not installed. The
   grid integration harness expectation was updated, but its complete permutation
@@ -119,6 +176,22 @@ runtime state can change after this snapshot, so verify it first.
   reload the IDE for future verification; leave temporary demos stopped afterward.
 
 ### Authorized publication
+
+The user authorized publishing the compact UI and lifecycle fixes plus the
+updated handoff. Submodule commit
+`6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c`, titled
+`Fit operating-room panes and isolate device shutdown recovery`, was pushed to
+GitHub `web-based-tutorial-apps`; its remote SHA was verified before parent
+publication. The parent commit titled
+`Update handoff and pin compact operating-room fixes` contains its matching
+gitlink and updated handoff, README, baseline, and clean-install runbook pins.
+Publish the parent to Bitbucket `develop` with `HEAD:develop` because the local
+branch is named `main`. Final pre-publication checks passed 20 Node tests and
+12 host launcher tests, plus documentation assertions and whitespace checks.
+Machine-local `.vscode/` and the generated VSIX are excluded. No image rebuild
+or live-volume Git metadata change is part of this publication.
+
+#### Earlier recovery publication
 
 The user authorized publishing the outstanding changes. Submodule commit
 `5ef04beefcef94cfa387704e2ebd0591d4d5da24` was pushed to GitHub
@@ -152,11 +225,11 @@ Host workspace: `/Users/fran/code/repos/cloud_eval_medical` on macOS.
 
 | Repository | Branch and remote | Published revision |
 | --- | --- | --- |
-| Parent | Local `main` tracks Bitbucket `origin/develop` | Commit containing this handoff, titled `Default to cloud mode and publish recovery handoff` |
-| MedTech submodule | `web-based-tutorial-apps`, GitHub origin | `5ef04beefcef94cfa387704e2ebd0591d4d5da24` |
+| Parent | Local `main` tracks Bitbucket `origin/develop` | Commit containing this handoff, titled `Update handoff and pin compact operating-room fixes` |
+| MedTech submodule | `web-based-tutorial-apps`, GitHub origin | `6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c` |
 
 The parent revision is identified by its commit/title rather than embedding its
-own SHA in itself. The preceding web-only baseline parent was
+own SHA in itself. The earlier web-only baseline parent was
 `9d0d70b89c091d4da8d3bd8b5dc9604ae45a45b2`. This publication includes launcher/
 supervisor lifecycle, Orchestrator frontend, extension recovery/grid/command
 registration, tutorial content, documentation, and tests. `.vscode/` and the

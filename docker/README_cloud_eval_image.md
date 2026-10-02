@@ -70,7 +70,7 @@ An image rollback alone does not restore workspace source. Restore that volume
 backup to a separate volume for exact pre-upgrade workspace recovery.
 
 The parent pins published web-only submodule commit
-`5ef04beefcef94cfa387704e2ebd0591d4d5da24`; no source overlay is needed for that
+`6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c`; no source overlay is needed for that
 revision. Older desktop source pins are incompatible with this recipe. The
 Dockerfile deliberately does not bundle source, executables, or extensions;
 prebuilt startup remains future work. Use the web tag consistently to retain
@@ -197,7 +197,7 @@ docker exec --user root medical-playground chown -R 911:1001 /config/workspace
 ```
 
 The `medtech-reference-architecture` submodule revision should be
-`5ef04beefcef94cfa387704e2ebd0591d4d5da24`, without a leading `+` or `-`.
+`6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c`, without a leading `+` or `-`.
 Record `REVIEWED_PARENT_REVISION` with the image build so later clones reproduce
 the same source rather than following a moving branch tip. A future reviewed
 parent revision may intentionally select a different submodule commit.

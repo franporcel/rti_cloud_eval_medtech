@@ -1,6 +1,6 @@
 # Digital Operating Room Cloud Eval Handoff
 
-This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins the web-only recovery commit `5ef04beefcef94cfa387704e2ebd0591d4d5da24` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
+This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins the compact web UI and shutdown recovery commit `6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
 
 ## Cloud Image And Recovery
 
@@ -101,6 +101,6 @@ Without a mode flag, `./tutorial/launch_all.sh` defaults to cloud/code-server mo
 
 ## Verify a clean clone
 
-From a fresh clone, check that `git submodule status` reports `5ef04beefcef94cfa387704e2ebd0591d4d5da24` without a leading `-` or `+`. Check for four web UI tabs, a PatientSensor process, and a sidebar showing ten tutorial steps. The first run builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh --vscode` locally, or `./tutorial/launch_all.sh` in the cloud workspace, to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
+From a fresh clone, check that `git submodule status` reports `6f2f76e903d5cd0c9a9b9b4d7a5c598d1dc9af3c` without a leading `-` or `+`. Check for four web UI tabs, a PatientSensor process, and a sidebar showing ten tutorial steps. The first run builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh --vscode` locally, or `./tutorial/launch_all.sh` in the cloud workspace, to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
 
 The tutorial's [content and local usage](tutorial/README.md), [cloud integration constraints](tutorial/INTEGRATION_NOTES.md), and [web extension details](medtech-reference-architecture/vscode-extension/README.md) are documented separately. The prebuilt packaging options above remain proposals. A cloud workspace needs licensed Connext runtime support, the application's runtime dependencies, and hosted UI integration, not a display server. Native build dependencies are needed only if building there. This script prepares a local or suitably provisioned workspace, not a hosted evaluation template.
