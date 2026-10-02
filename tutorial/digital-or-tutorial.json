@@ -103,7 +103,7 @@
       "tryThis": [
         "From the Orchestrator, send a PAUSE command to the Patient Sensor. Watch the Patient Monitor pause, then resume it with START.",
         "From the Arm Controller, stop all motors, then resume just the Elbow motor and nudge the Wrist with the +/- buttons.",
-        "From the Orchestrator, send PAUSE to the Arm, then START to resume it. Closing a VS Code device tab kills that app; use its Restore button in the tutorial to restart the device and reopen its tab."
+        "From the Orchestrator, send PAUSE to the Arm, then START to resume it. Closing a VS Code device tab kills that app; select the device in the Orchestrator and click Start to restart it and reopen its tab."
       ]
     },
     {
@@ -119,7 +119,7 @@
         "Content-Filtered Topics on t/DeviceCommand \u2014 each device only receives commands addressed to it, using a single shared Topic."
       ],
       "tryThis": [
-        "Increase the Heartbeat Deadline period to 5 seconds and restart the demo to apply the change. Close the PatientMonitor VS Code tab to kill its process and observe the Orchestrator's offline alert after the new deadline. Use Restore PatientMonitor to restart it afterward.",
+        "Increase the Heartbeat Deadline period to 5 seconds and restart the demo to apply the change. Close the PatientMonitor VS Code tab to kill its process and observe the Orchestrator's offline alert after the new deadline. Select Patient Monitor in the Orchestrator and click Start to restart it afterward.",
         "Comment out the <content_filter> for dr/DeviceCommand under dp/PatientMonitor in ParticipantLibrary.xml, relaunch, and send a Shut Down command to only the Arm Controller \u2014 notice the Patient Monitor also shuts down, because it's no longer filtering commands meant for other devices."
       ],
       "keyTakeaway": "These are the exact QoS levers a systems engineer tunes to move from a lab prototype to a certifiable, patient-safe deployment \u2014 without changing application code."
@@ -140,8 +140,8 @@
       "number": 9,
       "title": "Simulate a Real-World Failure",
       "body": [
-        "While watching the Orchestrator's Alerts panel, close the Arm VS Code tab. This kills the Arm process and stops its DDS heartbeats. Wait for the disconnect alert, then use Restore Arm to restart only that device and reopen its tab. Keep the Orchestrator tab open so you can observe the failure and recovery.",
-        "To compare with a graceful stop, send SHUTDOWN to the Arm Controller from the Orchestrator and observe its status change. Use Restore ArmController to bring it back without restarting the entire demo."
+        "While watching the Orchestrator's Alerts panel, close the Arm VS Code tab. This kills the Arm process and stops its DDS heartbeats. Wait for the disconnect alert, then select Arm in the Orchestrator and click Start to restart only that device and reopen its tab. Keep the Orchestrator tab open so you can observe the failure and recovery.",
+        "To compare with a graceful stop, send SHUTDOWN to the Arm Controller from the Orchestrator and observe its status change. Click Start to bring it back without restarting the entire demo."
       ],
       "keyTakeaway": "This is one of the key selling points of Connext for healthcare buyers: Connext turns device failure detection and safe shutdown into a QoS-and-architecture concern, not bespoke integration code per device vendor."
     },

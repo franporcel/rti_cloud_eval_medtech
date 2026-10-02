@@ -51,7 +51,7 @@ next steps), but tells a healthcare-specific story aimed at Healthcare/MedTech p
 ```bash
 git clone --recurse-submodules ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git
 cd cloud_eval_medical
-./tutorial/launch_all.sh
+./tutorial/launch_all.sh --vscode
 ```
 
 Run from the repository root with licensed Connext 7.7 installed. The script initializes the
@@ -68,7 +68,7 @@ To use browser tabs instead of VS Code, run:
 ```
 
 The launcher installs the bundled [MedTech Web Tabs extension](../medtech-reference-architecture/vscode-extension/README.md)
-for the default VS Code mode. Add `--secure` only after generating security artifacts; see the
+for desktop VS Code mode. Add `--secure` only after generating security artifacts; see the
 [top-level setup guide](../README.md).
 
 ## Cloud image
@@ -82,10 +82,11 @@ this tutorial workspace, and run once in its terminal:
 
 ```bash
 cd /config/workspace
-./tutorial/launch_all.sh --cloud
+./tutorial/launch_all.sh
 ```
 
-Cloud mode is also selected automatically in a headless `/app/code-server` image.
+Cloud mode is the default; `--cloud` remains an explicit alias. Use `--vscode` for
+desktop VS Code or `--web` for standalone browser tabs.
 The launcher installs the bundled extension, builds all five DDS applications,
 opens the tutorial in a native VS Code side panel, and opens Arm Controller, Arm,
 Orchestrator, and Patient Monitor in a 2x2 editor grid. Patient Sensor is headless.
@@ -93,10 +94,12 @@ No desktop VS Code CLI or noVNC display is used. After first installing or updat
 the extension, reload the browser IDE once if the Digital Operating Room activity
 icon is missing. Select that icon before launching if multiple IDE windows are open.
 
-The tutorial renders the same ten JSON steps with Open File actions and Restore
-buttons. Closing a device editor tab kills its DDS process; Restore starts only
-that device and reopens its tab. While the device is running or its health is
-unknown, its Restore button is disabled. Only the code-server port needs publishing;
+The tutorial renders the same ten JSON steps with Open File actions. Closing a
+device editor tab kills its DDS process; select it in the Orchestrator and click
+Start to relaunch that device and reopen its tab. Start resumes paused devices,
+and can also restart Patient Sensor. Unknown health never starts a duplicate app.
+Use **Digital Operating Room: Open Orchestrator** in the Command Palette if the
+Orchestrator itself was closed or killed. Only the code-server port needs publishing;
 the embedded device frames use `/proxy/8090/` through `/proxy/8093/` internally.
 
 Set `MEDTECH_CLOUD_URL` to the external IDE origin when it differs from
@@ -121,9 +124,8 @@ This legacy tool requires a separately installed `PySide6`; launch it explicitly
 with `python3 tutorial/tutorial_gui.py`. It is not part of the web-only setup.
 Its "Open File" buttons use VS Code if
 `code` is on your `PATH`, otherwise the OS default editor. The tutorial's web-demo steps
-do not start a second build or launch. In the default VS Code mode, four Restore buttons
-restart stopped apps individually and reopen their VS Code tabs. A button stays disabled
-while its app is running or its health is unknown, and becomes available after the app stops.
+do not start a second build or launch. The legacy GUI retains its own Restore buttons;
+the normal VS Code demo uses Orchestrator Start instead.
 Keep the Orchestrator tab open during failure exercises to see disconnect and recovery alerts. After updating
 the extension, run **Developer: Reload Window** in VS Code and relaunch the demo to load
 the new close handling. Closing the tutorial also stops apps restarted this way.

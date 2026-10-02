@@ -1,7 +1,137 @@
 # Cloud evaluation session handoff
 
-Snapshot: 2026-10-01. Read this before rebuilding, cleaning Docker, or changing the
-cloud tutorial. Runtime state can change after this snapshot; verify it first.
+Latest verification: 2026-10-02, after Orchestrator recovery, recorded UX fixes,
+and cloud-default launcher deployment. Publication is recorded below. The
+current-state sections below supersede older chronological update sections.
+Read this before rebuilding, cleaning Docker, or changing the cloud tutorial;
+runtime state can change after this snapshot, so verify it first.
+
+## Resume here
+
+- **The image is already rebuilt and deployed**, not just an updated Dockerfile.
+  `medical-playground` runs `medical-playground:medtech-cloud-web`; its running
+  image ID matches the local tag. The IDE health endpoint is alive on port 8080.
+- Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK, Mesa/EGL/LLVM, and VNC support are
+  absent from the image. Latest verification reconfirmed the removed Python
+  modules are absent and all device ports 8090-8093 are free.
+- The existing `/config` volume is preserved. Demo apps, including restored Arm,
+  are stopped. To start once, open `http://127.0.0.1:8080/?folder=/config/workspace`
+  and run `./tutorial/launch_all.sh` from `/config/workspace`. Cloud mode is now
+  the default; `--cloud` remains an alias, `--vscode` selects desktop VS Code,
+  and `--web` selects standalone browser tabs.
+- The recovery submodule is published as `5ef04beefcef94cfa387704e2ebd0591d4d5da24`.
+  The parent publication containing this handoff pins it and includes the
+  cloud-default launcher, tutorial/docs, and baseline updates. A clean checkout
+  of this parent publication includes the latest behavior without a source overlay.
+- Recovery now lives in Orchestrator **Start**, not tutorial Restore buttons.
+  Start resumes paused devices or relaunches stopped devices and reopens tabs.
+  **Digital Operating Room: Open Orchestrator** restores the Orchestrator itself.
+- Latest checks: 18 Node tests on host/Linux, 11 launcher tests on the host,
+  real DDS recovery/cleanup, and 98 captured post-fix browser frames with no
+  surviving-pane blanking or movement. Earlier build/dependency checks remain
+  historical evidence, not newly rerun full-suite results.
+- Images and workspace source are separate: this dependency image does not bundle
+  the source, extension, or built apps. Those remain in `/config`. Publishing Git
+  did not rewrite the running volume's existing Git metadata or its tested files.
+- Remaining work: export/back up the new web-only image, copy backups to approved
+  off-machine storage, test fresh-volume installation, and measure hosted cold
+  startup. Prebuilt startup optimization has not been implemented.
+- This handoff is part of the current parent publication. The earlier baseline
+  handoff was included in parent commit `9d0d70b`. Unrelated
+  host VS Code settings and the generated VSIX remain intentionally untracked.
+
+## Session summary: 2026-10-02
+
+### Recovery and lifecycle
+
+- Replaced the tutorial's Restore controls with Orchestrator Start. The ten
+  instructional steps, file actions, and navigation remain in the sidebar.
+  Tutorial exercises and extension documentation now describe Start recovery.
+- Start supports Arm, Arm Controller, Patient Monitor, and headless Patient
+  Sensor. Running/paused devices retain the DDS START command; stopped devices
+  launch through `run_digital_or.sh --launch-only <app> --vscode`.
+- The Orchestrator iframe bridge validates its source/origin, device whitelist,
+  and request IDs. Recovery is independent of whether the tutorial is visible.
+- Health polling is 250 ms; bounded 15-second startup guards prevent duplicate
+  launchers. Unknown health never authorizes a new process. Patient Sensor uses
+  an owned PID record at `/tmp/medtech-web-tabs-911/PatientSensor.process`.
+- Immediate Shut Down/Start remembers shutdown intent before the next OFF poll.
+  Recovery waits up to two seconds for endpoint/PID exit, retrying transient
+  connection resets/timeouts; tab-absent recovery also waits for the close watcher.
+- The full VS Code launcher stays alive after all original apps are replaced.
+  SIGTERM invokes Python cleanup, restored launchers have owned process groups,
+  and the shell cleanup signals both children and the persistent supervisor.
+- Live checks verified new PIDs for all four controlled apps and Orchestrator,
+  pause/resume, tab-close recovery, external process kill, and normal shutdown
+  after every original app was replaced. Recovered devices survived restarting
+  Orchestrator, and final cleanup left no original or recovered processes.
+
+### Recorded UX correction
+
+- Preserving iframe objects alone did not remove the visible glitch. Before/after
+  frame captures showed that closing a tab collapsed its editor group and Start
+  rebuilt the grid, making the other visible panes resize and repaint.
+- The final fix reserves empty demo slots with a temporary workspace setting:
+  `workbench.editor.closeEmptyGroups=false`. Recovery now performs **no layout
+  commands or survivor reveals**; it fills only the missing panel's slot.
+- The previous workspace setting is restored on full demo closure and awaited
+  extension deactivation, without overwriting a setting changed by the user.
+  The real container setting returned to unset after verification cleanup.
+- Duplicate healthy opens do not reload HTML. An existing tab for a restarted
+  process reloads only its own iframe when its process ownership token changes.
+  The grid uses row-major slots: Arm Controller/Arm above Orchestrator/Patient
+  Monitor. Orchestrator selection and surviving iframe state are preserved.
+- Post-fix rendered checks captured 40 Arm, 29 Arm Controller, and 29 Patient
+  Monitor frames: zero blank survivor frames, zero bounds changes including tab
+  closure, and unchanged survivor iframe identities. The existing-tab reconnect
+  path also passed. Do not substitute final coordinates/iframe identity for a
+  visual transition check when investigating future UX regressions.
+- Compositor screencasting stalled on the hidden shared browser; direct
+  `Page.captureScreenshot` sequences worked at roughly eight frames per second.
+  Filmstrip screenshots are in this session's chat artifacts; no permanent MP4
+  was saved, and browser-memory recordings were cleared by reload.
+
+### Launcher default and deployment
+
+- `./tutorial/launch_all.sh` now defaults to cloud/code-server mode regardless of
+  DISPLAY or environment auto-detection. `--cloud` is an explicit alias;
+  `--vscode` and `--web` opt into desktop VS Code and standalone browsers.
+  `MEDTECH_CLOUD` is explicitly exported as 0 or 1 to avoid inherited-mode leaks.
+- Root/tutorial README examples were updated. Six actual argument-parser cases
+  passed, covering default/cloud/desktop/browser/secure modes with DISPLAY set;
+  shell syntax passed on macOS and Linux. No fresh-volume installation was run.
+- Changed source and loose extension files were copied into `medical-playground`
+  and the IDE reloaded. Cloud installs copy loose files into
+  `/config/extensions/rti.medtech-web-tabs-0.1.0`; desktop mode packages/installs
+  a VSIX. The existing generated VSIX was not rebuilt by this session's cloud work.
+- `docker cp` preserved host ownership and initially caused extension-copy
+  permission errors. After each deployment, copied files were restored to
+  `abc:abc` (UID 911/GID 1001). Keep doing this for future source copies.
+- Latest focused validation: 18 Node tests on host and Linux; 11 launcher pytest
+  tests on host; relevant Python syntax, JavaScript diagnostics, shell routing,
+  real DDS workflows, and visual captures. Linux pytest is not installed. The
+  grid integration harness expectation was updated, but its complete permutation
+  suite was not executed during this session.
+- During implementation, no image rebuild, container recreation, Git commit/push,
+  licensed-artifact export, or backup refresh was performed. The subsequent
+  authorized Git publication is recorded below. Host and live-volume Git metadata
+  remain separate. The user grants standing permission to restart the demo and
+  reload the IDE for future verification; leave temporary demos stopped afterward.
+
+### Authorized publication
+
+The user authorized publishing the outstanding changes. Submodule commit
+`5ef04beefcef94cfa387704e2ebd0591d4d5da24` was pushed to GitHub
+`web-based-tutorial-apps` and its remote SHA verified before parent publication.
+The parent commit titled `Default to cloud mode and publish recovery handoff`
+contains the matching gitlink, launcher/tutorial/docs, baseline/runbook pins,
+and this handoff; publish it to Bitbucket `develop` with `HEAD:develop` because
+the local branch is named `main`. No image or volume Git metadata was changed.
+
+Immediately before publication, 18 Node tests, 11 host launcher tests, and shell
+syntax checks passed again. Machine-local `.vscode/` and the generated VSIX were
+intentionally excluded. Image export, off-machine backup, fresh-volume acceptance,
+and cold-start measurement remain outstanding.
 
 ## Goals and non-negotiable constraints
 
@@ -22,14 +152,21 @@ Host workspace: `/Users/fran/code/repos/cloud_eval_medical` on macOS.
 
 | Repository | Branch and remote | Published revision |
 | --- | --- | --- |
-| Parent | Local `main` tracks Bitbucket `origin/develop` | `68ca7b5604cab35b7de04645ebf0960b546f2cc8` |
-| MedTech submodule | `web-based-tutorial-apps`, GitHub origin | `4050cd3beba407a8cdef3ae65c0f04d995be7a25` |
+| Parent | Local `main` tracks Bitbucket `origin/develop` | Commit containing this handoff, titled `Default to cloud mode and publish recovery handoff` |
+| MedTech submodule | `web-based-tutorial-apps`, GitHub origin | `5ef04beefcef94cfa387704e2ebd0591d4d5da24` |
+
+The parent revision is identified by its commit/title rather than embedding its
+own SHA in itself. The preceding web-only baseline parent was
+`9d0d70b89c091d4da8d3bd8b5dc9604ae45a45b2`. This publication includes launcher/
+supervisor lifecycle, Orchestrator frontend, extension recovery/grid/command
+registration, tutorial content, documentation, and tests. `.vscode/` and the
+generated VSIX remain untracked and unrelated to publication.
 
 Parent origin: `ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git`.
 Submodule origin:
 `https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture.git`.
 
-Published commits from this session:
+Published commits from the earlier web-only sessions:
 
 - Submodule `4050cd3`: cloud URI bridge, native tutorial sidebar, proxy-compatible
   device UIs, editor-grid ownership and restore lifecycle, regression tests.
@@ -37,19 +174,23 @@ Published commits from this session:
   stop script, tests, tutorial documentation, updated submodule gitlink.
 - Parent `68ca7b5`: versioned image recipe, pinned Python versions, baseline,
   clean-install/backup runbook, Git/build-context exclusions, root README links.
+- Submodule `1e18c2f`: web-only device backends and GTK-free build targets,
+  desktop-import regression tests, separate Module 04 desktop requirements.
+- Parent `9d0d70b`: published web-only image recipe and submodule pin, sidebar-only
+  normal tutorial launch, deployment/rollback runbook, baseline, and this handoff.
 
 Because the parent local branch name differs from its upstream, publication used
 `git push origin HEAD:develop`, not an assumed `main` remote branch. Push submodule
 changes before publishing the parent gitlink. Do not commit generated archives,
-credentials, or unrelated editor settings. This handoff itself was added after
-`68ca7b5`; it is not part of that published revision.
+credentials, or unrelated editor settings. This handoff was first published in
+`9d0d70b`; the latest current-state refresh is included in this publication.
 
 ## Canonical files in this workspace
 
 | Path | Purpose |
 | --- | --- |
 | `docker/Dockerfile` | Canonical derived-image recipe, explicitly `linux/amd64` |
-| `docker/requirements.txt` | Eleven Python pins matching the working Linux environment |
+| `docker/requirements.txt` | Five web-only Python pins; licensed Connext inherited from base |
 | `docker/baseline.json` | Archive checksum, image IDs, source revisions, observed APT versions, runtime settings |
 | `docker/README_cloud_eval_image.md` | Clean-install instructions, acceptance checks, image and volume backup/restore |
 | `docker/.dockerignore` | Only Dockerfile and requirements enter the build context |
@@ -58,7 +199,7 @@ credentials, or unrelated editor settings. This handoff itself was added after
 | `tutorial/run_digital_or.sh` | Setup/build/demo helper; uses `MEDTECH_VENV` when supplied |
 | `tutorial/stop_all.sh` | Executable emergency stop for this checkout's apps and restored/orphaned devices |
 | `tutorial/digital-or-tutorial.json` | Shared ten-step tutorial content |
-| `tutorial/tutorial_gui.py` | Separate local PySide6 tutorial; not used by cloud mode |
+| `tutorial/tutorial_gui.py` | Legacy optional PySide6 tutorial; not installed or started by the normal workflow |
 | `tutorial/test_tutorial_gui.py` | Tutorial, signal cleanup, and real-subprocess stop-script tests |
 | `medtech-reference-architecture/launch.py` | App launch/close lifecycle and cloud URI request dispatch |
 | `medtech-reference-architecture/vscode-extension/extension.js` | Four-panel grid, cloud proxy mapping, URI bridge ownership |
@@ -99,7 +240,7 @@ Relative to this repo: `../cloud_eval_backup/backup-2026-10-01T22-09-40-321Z/`.
 | --- | --- | --- |
 | `host-untracked.tar.gz` | 9,103 untracked/ignored host files from parent and submodule | 0.476 GB |
 | `cloud-eval-image-originals.tar.gz` | Entire historical sibling image directory, including original archive | 1.058 GB |
-| `medical-playground-medtech-cloud.tar.gz` | Exported working derived Docker image | 1.519 GB |
+| `medical-playground-medtech-cloud.tar.gz` | Exported original large derived image, not the new web-only image | 1.519 GB |
 | `docker-config.tar.gz` | Consistent backup of the actual `/config` named volume | 0.012 GB |
 | `manifest.json` | File inventory, source revisions, image/volume identities, recovery notes | About 1.1 MB |
 | `SHA256SUMS` | Checksums of all four archives and the manifest | Small text file |
@@ -127,8 +268,12 @@ instructions supersede earlier session notes saying no real volume backup exists
 
 ## Current Docker runtime
 
-- Container: `medical-playground`; running after backup, demo left stopped.
-- Image: `medical-playground:medtech-cloud`.
+- Container: `medical-playground`; running and healthy, demo left stopped.
+- Image: `medical-playground:medtech-cloud-web`.
+- Running image ID: `sha256:a528508d1e8f29139a4d6acb6a5c791a5b0bc3b4294e81fa33f370ef9a30cca6`.
+- Docker-reported size: `7072172485` bytes (7.07 GB), down from slim's 8.11 GB.
+  Added filesystem layers over the original base: `20504576` bytes (20.5 MB).
+  These are storage/layer metrics, not compressed image download sizes.
 - IDE: `http://127.0.0.1:8080/?folder=/config/workspace`.
 - Port mapping: `127.0.0.1:8080 -> 8443/tcp`.
 - Named volume: **`medical-playground-cloud-test-config`**, mounted at `/config`.
@@ -151,17 +296,19 @@ Host edits do not automatically appear in the container; IDE edits do not
 automatically appear on the host. Compare/copy/commit deliberately. In particular,
 the newly versioned `docker/` recipe was not automatically synchronized there.
 
-The working image was built from the historical sibling recipe, **not rebuilt
-from the new pinned recipe**. Both recipes retain the earlier GUI/noVNC packages.
-The new requirements' eleven versions match the running environment, but this
-does not establish a full clean-install acceptance result. Exact image identities
-are in `docker/baseline.json` and the external backup manifest.
+The current image was rebuilt from the canonical `docker/` recipe and deployed
+after a clean Linux application build and real DDS runtime validation. It does
+not contain the old GUI/noVNC dependency stack. The Dockerfile provisions the
+environment; application source/builds and extensions remain in `/config`.
+This existing-volume deployment does not establish fresh-volume hosted acceptance.
+Exact image identities are in `docker/baseline.json`; historical exported-image
+identities remain in the external backup manifest.
 
 Run in the IDE terminal, once:
 
 ```bash
 cd /config/workspace
-./tutorial/launch_all.sh --cloud
+./tutorial/launch_all.sh
 ```
 
 For emergency shutdown from a new IDE terminal:
@@ -178,8 +325,9 @@ window so it owns the URI bridge. Do not launch duplicate demos.
 
 ## Implementation details and resolved failures
 
-- Cloud mode is explicit via `--cloud`, or detected in a headless code-server
-  image. It uses `--vscode` device mode, not the superseded noVNC tutorial.
+- Cloud mode is the default; `--cloud` remains an alias. It uses `--vscode`
+  device mode, not the superseded noVNC tutorial. Desktop VS Code requires the
+  launcher flag `--vscode`; standalone browsers use `--web`.
 - Device ports: Orchestrator 8090, Arm Controller 8091, Arm 8092, Patient Monitor
   8093. Patient Sensor is headless. Only IDE port 8080 is published.
 - Device frames use `/proxy/8090/` through `/proxy/8093/`. Frontend API fetches are
@@ -187,21 +335,26 @@ window so it owns the URI bridge. Do not launch duplicate demos.
 - Cloud URI dispatch uses atomic JSON files in
   `/tmp/medtech-web-tabs-<uid>/requests`. A focused/sidebar-visible extension-host
   owner prevents multiple code-server sessions from splitting the device grid.
-- The native sidebar renders the same ten JSON steps. Open File uses the editor.
-  Restore is disabled before a full launch, during a startup guard, and when device
-  health is healthy or unknown. Closing a device editor terminates that device.
+- The native sidebar renders the same ten JSON steps. Open File uses the editor;
+  it has no Restore controls. Orchestrator Start owns recovery, protected by
+  health/startup guards. Closing a device editor terminates that device but keeps
+  its empty grid slot reserved during the demo.
 - Restored app launchers have detached process groups. Shutdown signals the whole
   group; signaling only the Python parent previously orphaned the Arm child.
 - The stop script matches same-user processes by this checkout's real script or
   executable path, supports relative launchers and both build architectures, uses
   bounded TERM/KILL cleanup, and queues cloud panel closure. macOS can report the
   interpreter as capitalized `Python`; matching is case-insensitive.
-- GTK headers were absent from the original base and are needed to build the two
-  C++ apps. The cloud venv must not be replaced with the copied macOS venv.
+- GTK headers were required by the superseded desktop builds, not the current
+  web-only C++ apps. The cloud venv must not be replaced with the copied macOS venv.
 - Old shared browser pages for noVNC on 8094 and standalone device tabs may still
   appear as attachments. They are leftovers, not the intended current interface.
 
-## Web versus desktop dependencies and size
+## Historical dependency snapshot before web-only conversion
+
+The following dependency/size discussion describes the original image, not the
+current web-only runtime. The current image inventory and later conversion/
+publication records supersede it; native device GUIs are no longer supported.
 
 The current cloud experience consists of four headless HTTP servers/browser UIs,
 plus Patient Sensor and the native VS Code tutorial view. It does not use X11
@@ -230,7 +383,10 @@ Preserve the known-working image and test web/native behavior before removing
 dependencies. The recipe pins Python versions but does not freeze Ubuntu mirrors
 or all transitive system packages; the image export is the exact binary fallback.
 
-## Verification completed
+## Historical verification before web-only conversion
+
+These counts belong to the original snapshot. For this session's focused checks
+and their limitations, use the 2026-10-02 summary above.
 
 - Live Linux build and generated Python types; all five DDS apps launched.
 - Native sidebar, ten tutorial steps, four live UIs in the 2x2 grid, connected
@@ -323,7 +479,7 @@ synchronized into the container's workspace or published to Git.
    before asking the user to launch another. Recheck state rather than trusting
    this snapshot indefinitely.
 
-### Subsequent web-only conversion and deployment
+### Web-only conversion and deployment (pre-publication record)
 
 The user authorized removing Module 01 desktop components. ArmController and
 Orchestrator now compile and run only their existing HTTP/DDS classes, without

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Launches the Digital Operating Room web apps and the VS Code tutorial sidebar.
 #
-# Usage: ./launch_all.sh [--secure] [--web|--cloud] (VS Code tabs by default)
+# Usage: ./launch_all.sh [--secure] [--cloud|--vscode|--web] (cloud by default)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,14 +9,12 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_DIR="$ROOT_DIR/medtech-reference-architecture"
 launch_args=(--vscode)
 ui_mode=--vscode
-cloud_mode=0
-if [[ -d /app/code-server && -z "${DISPLAY:-}" ]]; then
-  cloud_mode=1
-fi
+cloud_mode=1
 export MEDTECH_SECURITY=0
 for arg in "$@"; do
   case "$arg" in
     --secure) launch_args+=(--secure); export MEDTECH_SECURITY=1 ;;
+    --vscode) launch_args=(--vscode "${launch_args[@]:1}"); ui_mode=--vscode; cloud_mode=0 ;;
     --web) launch_args=(--web "${launch_args[@]:1}"); ui_mode=--web; cloud_mode=0 ;;
     --native)
       echo "error: native device GUIs were removed; use VS Code tabs, --web, or --cloud." >&2
@@ -27,10 +25,7 @@ for arg in "$@"; do
   esac
 done
 export MEDTECH_UI_MODE="$ui_mode"
-
-if [[ "$cloud_mode" == 1 ]]; then
-  export MEDTECH_CLOUD=1
-fi
+export MEDTECH_CLOUD="$cloud_mode"
 
 if [[ "$ui_mode" != --native ]]; then
   python3 - <<'PY'
@@ -100,7 +95,8 @@ cleanup() {
   echo
   echo "Shutting down Digital Operating Room..."
   if [[ -n "${DEMO_PID:-}" ]] && kill -0 "$DEMO_PID" 2>/dev/null; then
-    pkill -TERM -P "$DEMO_PID" 2>/dev/null || kill "$DEMO_PID" 2>/dev/null || true
+    pkill -TERM -P "$DEMO_PID" 2>/dev/null || true
+    kill -TERM "$DEMO_PID" 2>/dev/null || true
     wait "$DEMO_PID" 2>/dev/null || true
   fi
 }

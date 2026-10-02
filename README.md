@@ -1,6 +1,6 @@
 # Digital Operating Room Cloud Eval Handoff
 
-This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins the web-only commit `1e18c2f94883f04c8be03b04b2e3758af3f2ec9f` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
+This repo contains the guided Digital Operating Room tutorial and a pinned checkout of the [MedTech Reference Architecture](https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture) with VS Code web tabs. The parent repository pins the web-only recovery commit `5ef04beefcef94cfa387704e2ebd0591d4d5da24` from the `web-based-tutorial-apps` branch; use the pinned commit, not the branch tip.
 
 ## Cloud Image And Recovery
 
@@ -92,15 +92,15 @@ Before committing to either option, measure on the actual Linux base image: depe
 ```bash
 git clone --recurse-submodules ssh://git@bitbucket.rti.com:7999/~fporcel/cloud_eval_medical.git
 cd cloud_eval_medical
-./tutorial/launch_all.sh
+./tutorial/launch_all.sh --vscode
 ```
 
 The single launch command also works after a plain `git clone`: it initializes the MedTech submodule at the pinned commit if missing, installs the bundled VS Code extension, creates a virtual environment, installs the Python requirements and Connext Python wheel, builds the C++ apps and Python types, and launches the Digital OR applications in VS Code tabs alongside the tutorial sidebar. The submodule checkout is never advanced to the latest branch tip. Existing tracked changes in a checkout at another commit block the update rather than being discarded.
 
-Use `./tutorial/launch_all.sh --web` to open the applications in browser tabs without the VS Code extension; native device windows have been removed. Add `--secure` only after generating the security artifacts described in the MedTech README. Press Ctrl+C in the launch terminal to stop the demo. Direct demo-only startup remains available with `./tutorial/run_digital_or.sh --vscode` after the submodule is initialized.
+Without a mode flag, `./tutorial/launch_all.sh` defaults to cloud/code-server mode; `--cloud` remains an explicit alias. Use `--vscode` for desktop VS Code or `--web` for standalone browser tabs; native device windows have been removed. Add `--secure` only after generating the security artifacts described in the MedTech README. Press Ctrl+C in the launch terminal to stop the demo. Direct demo-only startup remains available with `./tutorial/run_digital_or.sh --vscode` after the submodule is initialized.
 
 ## Verify a clean clone
 
-From a fresh clone, check that `git submodule status` reports `1e18c2f94883f04c8be03b04b2e3758af3f2ec9f` without a leading `-` or `+`. Check for four web UI tabs, a PatientSensor process, and a sidebar showing ten tutorial steps. The first run builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh` to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
+From a fresh clone, check that `git submodule status` reports `5ef04beefcef94cfa387704e2ebd0591d4d5da24` without a leading `-` or `+`. Check for four web UI tabs, a PatientSensor process, and a sidebar showing ten tutorial steps. The first run builds binaries, so allow time for it. Re-run `./tutorial/launch_all.sh --vscode` locally, or `./tutorial/launch_all.sh` in the cloud workspace, to verify the already-present submodule path. For an intentionally incomplete clone, omit `--recurse-submodules` and run the same launch command to verify auto-initialization.
 
 The tutorial's [content and local usage](tutorial/README.md), [cloud integration constraints](tutorial/INTEGRATION_NOTES.md), and [web extension details](medtech-reference-architecture/vscode-extension/README.md) are documented separately. The prebuilt packaging options above remain proposals. A cloud workspace needs licensed Connext runtime support, the application's runtime dependencies, and hosted UI integration, not a display server. Native build dependencies are needed only if building there. This script prepares a local or suitably provisioned workspace, not a hosted evaluation template.
