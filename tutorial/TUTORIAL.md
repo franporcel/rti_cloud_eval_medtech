@@ -34,7 +34,7 @@ In a real hospital, an operating room is a network of independent devices -- vit
 Go ahead and launch the applications:
 
 ```sh
-./tutorial/launch_all.sh
+./launch_all.sh
 ```
 
 You can see 4 interactive Operating Room applications:
@@ -115,7 +115,7 @@ The launch command has already set up, built, and started all five applications.
 - You can re-start an app by selecting the device in the Orchestrator and clicking `Start`. If you close the orchestrator, restart the demo with:
 
 ```sh
-./tutorial/restart_all.sh
+./restart_all.sh
 ```
 
 ## 7. Configure Patient-Safety QoS
@@ -137,7 +137,7 @@ Just like the Reliable QoS step in the Publish-Subscribe tutorial, this system r
 - Increase the Heartbeat Deadline period to 5 seconds on both the `<datawriter_qos>` and the `<datareader_qos>` and restart the demo to apply the change.
 
     ```sh
-    ./tutorial/restart_all.sh
+    ./restart_all.sh
     ```
 
     - Close the PatientMonitor VS Code tab to kill its process and observe the Orchestrator's offline alert after the new deadline. You can see that it took much longer for the Orchestrator to realize that the Patient Monitor was no longer active. Select Patient Monitor in the Orchestrator and click `Start` to restart it afterward.
