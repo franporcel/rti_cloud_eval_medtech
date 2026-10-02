@@ -1,11 +1,5 @@
 # Digital Operating Room
 
-See how Connext powers safe, interoperable, data-centric medical devices
-
-- **Tutorial ID:** `digital-operating-room`
-- **Source repository:** https://github.com/rticommunity/rticonnextdds-medtech-reference-architecture
-- **Source module:** `modules/01-operating-room`
-
 ## Overview
 
 This example shows how RTI Connext connects the devices in a modern operating room -- patient monitors, a surgical robotic arm, and a central orchestrator -- using the same data-centric publish-subscribe model you've already learned, applied to a real medical device architecture.
