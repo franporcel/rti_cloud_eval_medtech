@@ -41,7 +41,7 @@ These remain necessary with the current application code, even if the C++ applic
 - No GTK/Qt/display stack is needed for Module 01. Its C++ binaries no longer link GTK, and its Python backends no longer import desktop libraries.
 - VS Code/code-server with the bundled device-grid extension, and a Markdown viewer for the tutorial. Cloud mode installs the extension files directly; desktop `--vscode` mode needs Node.js/npx and the `code` CLI for packaging/installation. `--web` opens local browser tabs without the extension. Native device windows are no longer supported. Hosted template provisioning still requires platform validation.
 
-The local launcher creates a virtual environment and installs the MedTech Python requirements: `argcomplete>=3.1`, `pystun3>=2.0`, and `requests>=2.31`. It installs `rti.connext.activated` from the local Connext installation separately. Cloud mode checks the preinstalled environment instead. Module 04's optional desktop threat tools have their own requirements file and are not supported by this web-only image. Python transitive dependencies are resolved by `pip`.
+The local launcher creates a virtual environment and installs `argcomplete>=3.1`. It installs `rti.connext.activated` from the local Connext installation separately. Cloud mode checks the preinstalled environment instead. This branch contains only Module 01; NAT tooling and its `pystun3`/`requests` dependencies have been removed. Python transitive dependencies are resolved by `pip`.
 
 ### Historical Desktop Dependency Sizes
 
@@ -63,8 +63,6 @@ The following are historical **installed disk footprints**, not RAM use or compr
 | NumPy | Optional desktop tools only | Not needed by Module 01 | 34 MiB measured |
 | pyqtgraph | Optional desktop tools only | Not needed by Module 01 | 9.1 MiB measured, excluding NumPy/Qt already listed |
 | argcomplete | Install into environment | Keep for current launcher | 0.25 MiB measured |
-| pystun3 | Install into environment | Keep for current launcher | 0.03 MiB measured `stun` package |
-| requests | Install into environment | Keep for current launcher | 0.57 MiB measured, excluding transitive dependencies |
 | Display/remote desktop stack | Not needed to compile | Not needed by the normal tutorial | Historical 100-300 MiB Linux budget for Xvfb/VNC/noVNC, browser excluded |
 
 The original desktop Python virtual environment measured **1.3 GiB**, and its all-module build directory measured **20 MiB** (includes build intermediates, not just deliverable binaries). These overlap the table entries: do not add them again. The SDK contains the C++ library and wheel directories, and many system libraries are shared. A deployment also needs application source/assets, generated `Types.py`, and XML configuration. A Linux runtime image total cannot be inferred by summing these Mac measurements.

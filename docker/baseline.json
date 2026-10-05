@@ -1,5 +1,5 @@
 {
-  "recorded_on": "2026-10-02",
+  "recorded_on": "2026-10-05",
   "platform": "linux/amd64",
   "base_archive": {
     "name": "playground-20260709a.tar.gz",
@@ -40,12 +40,32 @@
     "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
     "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
   },
-  "medtech_revision": "898e28a0504ff9f38e0bd525e5931eed3c8bfa5a",
+  "medtech_revision": "c3bdceba4455ff4439396a046e90b60a7b63e1dd",
+  "module01_cleanup_validation": {
+    "recorded_on": "2026-10-05",
+    "image_tag": "medical-playground:medtech-module01",
+    "image_id": "sha256:565e0cc900f8a68d7946a0035558df82a6d404e54c5e61ca7a05458391f001b4",
+    "docker_reported_size_bytes": 7067326293,
+    "source_status": "Validated and deployed from the Module 01-only working tree, then published as c3bdceba4455ff4439396a046e90b60a7b63e1dd on web-based-tutorial-apps. Source is not embedded in image layers; live workspace Git metadata remains unchanged.",
+    "validation": "Clean Linux cloud-helper build generated Types.py and all three C++ binaries. Fresh operational security generation and real five-app secure/nonsecure acceptance passed: four APIs/assets, DDS presence, fresh vitals, pause/resume, and clean shutdown. All 100 retained Python tests and 25 JavaScript tests passed.",
+    "test_environment": "Root pytest used --import-mode=importlib to avoid duplicate test_launch.py basenames. DISPLAY=:99 bypassed legacy GUI skip guards; no display server was installed or used. New five-app acceptance tests also passed without DISPLAY. Connext and bundled OpenSSL runtime library paths were configured for security.",
+    "caveats": "Existing pytest class-fixture deprecation warnings and RTI asynchronous interface-tracker shutdown messages were observed without test failures. Subsequent authorized live deployment is recorded below.",
+    "live_deployment": {
+      "container_name": "medical-playground",
+      "backup": "/config/medtech-deployment-backups/module01-20261005-221708/pre-deploy.tar.gz",
+      "backup_sha256": "2107a99e7a5e1c6c83e77990bff3e2fa58110b4fe7d356cdcecf03144f434689",
+      "rollback_container": "medical-playground-pre-module01-2026-10-05T22-18-09.040Z",
+      "preserved": "Same persistent volume, environment values, port 8080, tmpfs and runtime settings. Live 5.2-second heartbeat deadlines and ParticipantLibrary.xml edits preserved; workspace Git metadata unchanged. Retired generated artifacts removed; missing operational security artifacts generated without --force.",
+      "validation": "Live clean build, 15 focused Python tests including secure/nonsecure five-app acceptance, and 25 JavaScript tests passed. Browser IDE reloaded: ArmController/Orchestrator/Arm/PatientMonitor in editor groups 1/2/3/4, all devices ON, fresh vitals, nonblank arm and three waveform canvases.",
+      "final_state": "Five applications running in nonsecure cloud grid mode; supervisor PID 1990, log /tmp/medtech-digital-or.9AelRi."
+    }
+  },
   "connext_python_version": "7.7.0",
   "runtime": {
     "container_name": "medical-playground",
-    "deployed_image_tag": "medical-playground:medtech-cloud-web",
-    "rollback_container": "medical-playground-pre-web-2026-10-01T23-04-54-527Z",
+    "deployed_image_tag": "medical-playground:medtech-module01",
+    "rollback_container": "medical-playground-pre-module01-2026-10-05T22-18-09.040Z",
+    "previous_web_rollback_container": "medical-playground-pre-web-2026-10-01T23-04-54-527Z",
     "older_rollback_container": "medical-playground-pre-slim-2026-10-01T22-34-07-288Z",
     "ide_url": "http://127.0.0.1:8080/?folder=/config/workspace",
     "ide_port_mapping": "127.0.0.1:8080:8443",

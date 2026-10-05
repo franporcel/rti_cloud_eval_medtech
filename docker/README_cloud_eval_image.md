@@ -21,17 +21,80 @@ Keep future image changes here and commit/push them with the tutorial changes.
 The current development volume is `medical-playground-cloud-test-config`; do not
 remove it when performing a clean-install test.
 
-### Current device-grid correction
+### Device-grid correction (2026-10-02)
 
 The live volume now restores the device-only extension and four-app editor grid;
 only the tutorial panel is removed. The tutorial is `tutorial/TUTORIAL.md`.
-This parent revision pins published device-grid submodule
-`898e28a0504ff9f38e0bd525e5931eed3c8bfa5a`. The existing volume has the matching
+At that time, the parent revision pinned published device-grid submodule
+`898e28a0504ff9f38e0bd525e5931eed3c8bfa5a`. The volume received the matching
 source overlay while preserving its older Git metadata and unrelated edits.
-The dependency image is unchanged because source and extensions live in `/config`.
+That deployment did not change the dependency image; source and extensions live in `/config`.
 The extension is not workspace-scoped: other repo windows in the same code-server
 instance can consume MedTech launch requests. Use independent volumes/containers
 for other demos until workspace-only activation and request handling are added.
+
+### Module 01-only cleanup validation (2026-10-05)
+
+The working tree now contains only Module 01. Its five applications, device-grid
+extension, operational governance, trusted CAs, secure-log reader, and test
+identities are retained. Retired service/WAN profiles, identities, NAT tooling,
+and dedicated images have been removed.
+
+This parent revision pins the published cleanup commit
+`c3bdceba4455ff4439396a046e90b60a7b63e1dd` on `web-based-tutorial-apps`.
+
+The revised dependency recipe was built as `medical-playground:medtech-module01`
+and tested in a disposable container with a clean Linux CMake build and freshly
+generated operational security artifacts. The five-app acceptance test checks
+all four APIs and assets, DDS device presence, fresh patient data, pause/resume,
+and clean shutdown in both ordinary and secure mode:
+
+```bash
+# In the prepared container, with the Connext runtime environment sourced:
+python -m pytest --import-mode=importlib \
+  modules/01-operating-room/tests/test_demo_flow.py -k five_app -v
+/app/code-server/lib/node --test \
+  vscode-extension/extension.test.js modules/01-operating-room/tests/web.test.js
+```
+
+Use `--import-mode=importlib` for root-level pytest: retained test directories
+both contain `test_launch.py`. Legacy `gui` markers still skip some older tests
+without `DISPLAY`; the new five-app acceptance cases have no display dependency.
+The Linux runtime requires Connext and its matching bundled OpenSSL library
+directories on `LD_LIBRARY_PATH` for the security probe.
+
+Results: 100 retained Python tests and 25 JavaScript tests passed. The full Python
+run used `DISPLAY=:99` solely to bypass legacy display skip guards, without a
+display server. The new five-app cases passed separately without `DISPLAY`.
+Existing pytest fixture deprecation warnings and RTI asynchronous interface
+tracker shutdown messages were observed, without test failures.
+
+Validation used local source before publication, not a fresh recursive-clone check.
+The image recipe does not embed workspace source. After this validation, the user
+authorized live redeployment as recorded below.
+
+### Live Module 01-only Deployment (2026-10-05)
+
+`medical-playground` now runs `medical-playground:medtech-module01`, with its
+existing persistent volume, environment, port 8080, and tmpfs settings preserved.
+Only cleanup files were overlaid; the live heartbeat deadlines (5.2 seconds),
+participant XML edits, and Git metadata were preserved. Retired module trees,
+generated security artifacts, and dedicated images were removed. Missing
+operational security artifacts were generated without overwriting existing keys.
+
+Live validation passed: clean build, 15 focused Python checks including secure
+and nonsecure five-app acceptance, 25 JavaScript tests, and the real browser
+2x2 editor grid with all devices ON, fresh vitals, and nonblank arm/waveforms.
+The demo is left running in normal nonsecure mode. Its supervisor is PID 1990
+and its log is `/tmp/medtech-digital-or.9AelRi`.
+
+The verified pre-deployment workspace/extension backup is
+`/config/medtech-deployment-backups/module01-20261005-221708/pre-deploy.tar.gz`.
+Its checksum is recorded in `baseline.json`. The old container is retained,
+stopped, as `medical-playground-pre-module01-2026-10-05T22-18-09.040Z`.
+Both containers share the same volume: never run them together. Restoring the
+old image alone does not undo source deployment; restore the backup into a
+separate volume for an exact workspace rollback.
 
 ## Prerequisites and files to share
 
@@ -56,12 +119,13 @@ The derived image adds Python venv support and `/opt/medtech-venv`. It reuses th
 base image's licensed `rti.connext==7.7.0` via system site packages. Module 01's
 device backends are web-only: neither GTK nor Qt is needed to compile or run them.
 The final image inventory excludes Qt/PySide6/shiboken6, pyqtgraph, NumPy, GTK,
-Mesa/EGL/LLVM, Xvfb, x11vnc, noVNC, and websockify. Module 04's separate desktop
-apps remain outside this cloud image; install their own requirements to use them.
+Mesa/EGL/LLVM, Xvfb, x11vnc, noVNC, and websockify. Only Module 01 is retained on
+this branch.
 
-### Web-only deployment
+### Historical Web-only Deployment
 
-`medical-playground` now uses `medical-playground:medtech-cloud-web`, preserving
+Before the Module 01-only redeployment, `medical-playground` used
+`medical-playground:medtech-cloud-web`, preserving
 the existing `/config` volume, environment, and port 8080. Docker reports
 7,072,172,485 bytes, down from the slim image's 8,113,184,327 bytes (12.8% smaller).
 Added filesystem layers over the base are only 20,504,576 bytes, down from
@@ -80,7 +144,7 @@ up to authorized local storage; its location and checksum are in `baseline.json`
 An image rollback alone does not restore workspace source. Restore that volume
 backup to a separate volume for exact pre-upgrade workspace recovery.
 
-The parent pins published web-only submodule commit
+That deployment's parent pinned published web-only submodule commit
 `898e28a0504ff9f38e0bd525e5931eed3c8bfa5a`; no source overlay is needed for that
 revision. Older desktop source pins are incompatible with this recipe. The
 Dockerfile deliberately does not bundle source or executables;
@@ -217,7 +281,7 @@ Check the preinstalled Python runtime:
 
 ```bash
 docker exec --user abc medical-playground /opt/medtech-venv/bin/python -c \
-  'import rti.connextdds, argcomplete, stun, requests; print("Python dependencies OK")'
+  'import rti.connextdds, argcomplete; print("Python dependencies OK")'
 ```
 
 ## 4. Open the IDE and launch once

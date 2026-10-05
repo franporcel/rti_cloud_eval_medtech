@@ -63,7 +63,7 @@ source "$venv_dir/bin/activate"
 if [[ "$mode" != launch ]]; then
   echo "Installing Python dependencies..."
   if [[ "${MEDTECH_CLOUD:-0}" == 1 ]]; then
-    python3 -c 'import rti.connextdds, argcomplete, stun, requests' || {
+    python3 -c 'import rti.connextdds, argcomplete' || {
       echo "error: cloud Python dependencies missing; rebuild the cloud image." >&2
       exit 1
     }
