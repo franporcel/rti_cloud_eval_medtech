@@ -51,6 +51,20 @@
       "final_state": "Normal nonsecure demo running; supervisor PID 2324, log /tmp/medtech-digital-or.M2j0Rg. Old container is stopped and shares the same volume: never start it concurrently. Image rollback alone does not restore source; restore the verified archive into a separate volume for exact workspace rollback."
     }
   },
+  "subprocess_cleanup_deployment": {
+    "recorded_on": "2026-10-05",
+    "container_name": "medical-playground",
+    "image_tag": "medical-playground:medtech-deps-locked",
+    "image_id": "sha256:04ea4968d4fe93fb4e20f0001cb3035da95a9dc014373a7bec98fefe109ef8c3",
+    "source_status": "Step 3 launcher source and regression tests deployed to the persistent workspace with abc:abc ownership, then published as 3ee21c8ec5457477ccdf1d800ae9dc983e707777 on web-based-tutorial-apps; the parent gitlink selects that revision. Image layers and live Git metadata unchanged.",
+    "behavior": "Single and multi-launch clean up all owned children on partial spawn, callback, interrupt, or wait failure and re-raise the original exception. Shared one-second SIGTERM grace, SIGKILL escalation, and bounded wait after kill; cleanup failures do not skip remaining children or mask the launch error. CLI interrupt exit remains successful.",
+    "validation": "Clean disposable Linux build and security setup; 115 Python tests and 26 JavaScript tests pass. Live 26 focused checks include secure/nonsecure headless five-app acceptance. Real cloud launch and supervisor SIGTERM shutdown verified all six owned PIDs reaped, APIs stopped and tabs closed while unrelated DDS inspectors survived; final relaunch verified all devices ON, fresh patient data and nonblank canvases.",
+    "test_environment": "Focused acceptance without DISPLAY; full suite DISPLAY=:99 bypasses legacy skip guards without a display server. Test tooling isolated from runtime venv; existing SDK interface-tracker shutdown diagnostics persist. Runner lint passes; pre-existing long lines in launch.py/tests/test_launch.py remain.",
+    "preserved": "Image, dependencies, runtime settings, volume, localhost 8080, QoS, participant XML, security artifacts and live Git metadata unchanged. Configuration/security aggregate hash byte-verified before and after source deployment.",
+    "backup": "/config/medtech-deployment-backups/subprocess-20261005/pre-deploy.tar.gz",
+    "backup_sha256": "280346497b9d6dffff6150d34d354a235450ee86ad3f2d67703aded851df6a7f",
+    "final_state": "Nonsecure cloud demo running; supervisor PID 11774, log /tmp/medtech-digital-or.KhXs2K. Supersedes historical final-state PIDs in earlier deployment records."
+  },
   "working_image_before_versioning_recipe": {
     "tag": "medical-playground:medtech-cloud",
     "id": "sha256:1e4eb75b3305d0931fcad80fc682c830589092070077e0e51bd02663281eaedf",
@@ -81,7 +95,7 @@
     "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
     "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
   },
-  "medtech_revision": "662e26e797a203de5048592669f9492b13d3d7ce",
+  "medtech_revision": "3ee21c8ec5457477ccdf1d800ae9dc983e707777",
   "module01_cleanup_validation": {
     "recorded_on": "2026-10-05",
     "image_tag": "medical-playground:medtech-module01",

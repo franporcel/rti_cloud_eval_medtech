@@ -96,6 +96,45 @@ Neither affected the results. Host VSIX packaging passed with Node 25.9.0 and
 npm 11.12.1. The image was subsequently deployed with user authorization as
 recorded below. Image identity is recorded in `baseline.json`.
 
+### Live Subprocess Cleanup Deployment (2026-10-05)
+
+Step 3 is deployed to `medical-playground` with `abc:abc` ownership. The
+dependency image remains `medical-playground:medtech-deps-locked`; application
+source lives in the persistent `/config` workspace, not image layers, so no
+image rebuild was required. These source changes are published as
+`3ee21c8ec5457477ccdf1d800ae9dc983e707777` on `web-based-tutorial-apps`;
+the parent gitlink selects that revision. Live Git metadata, runtime settings,
+dependencies, QoS, participant XML, and security artifacts were preserved.
+
+Both runner launch paths now clean up partial startup, callback failures,
+interrupts, and wait failures, then re-raise the original exception. Cleanup
+signals all owned children, allows a shared one-second grace period, escalates
+to SIGKILL, and waits to reap killed children. A cleanup error cannot prevent
+attempts on remaining children or replace the original launch exception.
+The command-line launcher still exits normally on Ctrl-C or SIGTERM.
+
+A disposable container using the same image passed a clean Linux build, fresh
+security setup, all 115 Python tests, and all 26 JavaScript tests. Both
+five-app acceptance modes passed without DISPLAY, including APIs/assets,
+fresh DDS data, pause/resume, and shutdown. The full Python suite used
+`DISPLAY=:99` only to bypass legacy skip guards; no display server was used.
+The live container passed all 26 focused launcher/security acceptance checks.
+Existing SDK interface-tracker shutdown messages remain; runner lint passed,
+while pre-existing long lines in the launcher/test file remain outside scope.
+
+Real cloud startup and supervisor SIGTERM shutdown were verified: all five
+children and the supervisor disappeared from `/proc`, all four APIs stopped,
+all four tabs closed, and unrelated DDS inspector processes stayed alive.
+The final nonsecure demo is running with four tabs, all devices ON, fresh
+patient data, and nonblank arm and waveform canvases. Supervisor PID: `11774`;
+log: `/tmp/medtech-digital-or.KhXs2K`. This supersedes earlier final-state PIDs.
+
+Scoped rollback archive (three Python files plus previous deployment docs):
+`/config/medtech-deployment-backups/subprocess-20261005/pre-deploy.tar.gz`.
+SHA-256: `280346497b9d6dffff6150d34d354a235450ee86ad3f2d67703aded851df6a7f`.
+Restore source from this archive for rollback; changing the image alone does
+not restore workspace files. Test tooling stayed outside the runtime venv.
+
 ### Live Dependency Deployment (2026-10-05)
 
 The current `medical-playground` container runs
