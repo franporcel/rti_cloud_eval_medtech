@@ -69,7 +69,7 @@ if [[ "$mode" != launch ]]; then
     }
   else
     python3 -m pip install -q -r requirements.txt
-    python3 -m pip install -q rti.connext.activated -f "$NDDSHOME/resource/python_api"
+    python3 -m pip install -q --no-index rti.connext.activated==7.7.0 -f "$NDDSHOME/resource/python_api"
   fi
 
   echo "Building (C++ targets + Python type support)..."

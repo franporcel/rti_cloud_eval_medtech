@@ -8,7 +8,48 @@
   },
   "base_image": {
     "tag": "rti-playground:20260709a",
-    "id": "sha256:abb72066172c1b58fdb9b3592d6780025c1c22833e0b327d7a3025c2f34c5752"
+    "id": "sha256:abb72066172c1b58fdb9b3592d6780025c1c22833e0b327d7a3025c2f34c5752",
+    "digest_reference": "rti-playground@sha256:abb72066172c1b58fdb9b3592d6780025c1c22833e0b327d7a3025c2f34c5752"
+  },
+  "reproducible_dependencies": {
+    "ubuntu_snapshot": "20261001T000000Z",
+    "cmake_utilities_commit": "2c4b3efef3ed87135565f5d9493303938a76da31",
+    "json_version": "3.12.0",
+    "json_archive_sha256": "4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187",
+    "vsce_version": "3.6.2",
+    "python_lock": "requirements.lock",
+    "python_lock_generator": "pip-tools==7.5.1 on Linux amd64 Python 3.12",
+    "sdk_origin": "rti.connext==7.7.0 inherited from the immutable licensed base",
+    "supported_cloud": {
+      "os": "Ubuntu 24.04",
+      "platform": "linux/amd64",
+      "connext": "7.7.0",
+      "sdk_architecture": "x64Linux4gcc8.5.0",
+      "compiler": "GCC 13.3.0",
+      "python": "3.12.3",
+      "cmake": "3.28.3",
+      "code_server_node": "22.21.1"
+    },
+    "validation": {
+      "image_tag": "medical-playground:medtech-deps-locked",
+      "image_id": "sha256:04ea4968d4fe93fb4e20f0001cb3035da95a9dc014373a7bec98fefe109ef8c3",
+      "docker_reported_size_bytes": 7067331723,
+      "checks": "Uncached image build, fresh hash-locked Python install and pip check, clean Linux C++ build and regenerated Python types, fresh operational security, secure/nonsecure five-app APIs/assets/fresh DDS data/pause-resume/shutdown, 100 Python tests and 26 JavaScript tests, locked desktop VSIX packaging, offline repeat cloud setup with unchanged utilities SHA.",
+      "test_environment": "Five-app acceptance passed without DISPLAY. Full Python run used DISPLAY=:99 to bypass legacy skip guards, with no display server. Packaging tested on host Node 25.9.0 and npm 11.12.1.",
+      "caveats": "Existing RTI interface-tracker shutdown diagnostics persist without test failures. Artificially detaching all container networking emits an SDK Java hostname-resolution diagnostic but setup succeeds. Runtime lock excludes developer/test tools; dependency pins do not imply byte-identical images.",
+      "deployment": "Initially validated in a disposable container, then deployed with user authorization as recorded below. Dependency and log-spacing source changes published as 662e26e797a203de5048592669f9492b13d3d7ce on web-based-tutorial-apps; the parent gitlink selects that revision. Live workspace Git metadata remains unchanged."
+    },
+    "live_deployment": {
+      "container_name": "medical-playground",
+      "image_tag": "medical-playground:medtech-deps-locked",
+      "backup": "/config/medtech-deployment-backups/deps-locked-20261005/pre-deploy.tar.gz",
+      "backup_sha256": "030a36f15c90f793c92cc314f417200dacdfd30145ad2ea0ee924e4345e48d10",
+      "rollback_container": "medical-playground-pre-deps-locked-20261005",
+      "preserved": "Original HostConfig, environment values, localhost port 8080, tmpfs and persistent medical-playground-cloud-test-config volume verified unchanged. Live Qos.xml and ParticipantLibrary.xml byte-verified unchanged; security artifacts and Git metadata untouched. Only Step 2 dependency/source files copied with abc:abc ownership.",
+      "validation": "Clean live Linux build regenerated Python types and all three binaries; pip check, nine launcher tests, secure/nonsecure five-app headless acceptance and 26 JavaScript tests passed. Actual cloud launcher and browser grid passed: editor groups 1/2/3/4 contain ArmController/Orchestrator/Arm/PatientMonitor, four APIs return HTTP 200, all devices ON, patient data_stale=false, nonblank arm and three waveform canvases.",
+      "test_environment": "Preserved /tmp noexec requires python -m pip rather than the pip entrypoint for the temporary test venv. No runtime-setting changes were needed.",
+      "final_state": "Normal nonsecure demo running; supervisor PID 2324, log /tmp/medtech-digital-or.M2j0Rg. Old container is stopped and shares the same volume: never start it concurrently. Image rollback alone does not restore source; restore the verified archive into a separate volume for exact workspace rollback."
+    }
   },
   "working_image_before_versioning_recipe": {
     "tag": "medical-playground:medtech-cloud",
@@ -40,7 +81,7 @@
     "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
     "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
   },
-  "medtech_revision": "c3bdceba4455ff4439396a046e90b60a7b63e1dd",
+  "medtech_revision": "662e26e797a203de5048592669f9492b13d3d7ce",
   "module01_cleanup_validation": {
     "recorded_on": "2026-10-05",
     "image_tag": "medical-playground:medtech-module01",
@@ -63,8 +104,9 @@
   "connext_python_version": "7.7.0",
   "runtime": {
     "container_name": "medical-playground",
-    "deployed_image_tag": "medical-playground:medtech-module01",
-    "rollback_container": "medical-playground-pre-module01-2026-10-05T22-18-09.040Z",
+    "deployed_image_tag": "medical-playground:medtech-deps-locked",
+    "rollback_container": "medical-playground-pre-deps-locked-20261005",
+    "previous_module01_rollback_container": "medical-playground-pre-module01-2026-10-05T22-18-09.040Z",
     "previous_web_rollback_container": "medical-playground-pre-web-2026-10-01T23-04-54-527Z",
     "older_rollback_container": "medical-playground-pre-slim-2026-10-01T22-34-07-288Z",
     "ide_url": "http://127.0.0.1:8080/?folder=/config/workspace",

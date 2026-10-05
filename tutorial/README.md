@@ -29,7 +29,7 @@ cd cloud_eval_medical
 The launcher initializes the pinned submodule, prepares a virtual environment,
 builds C++ and Python type support, and opens Orchestrator, Arm Controller, Arm,
 and Patient Monitor in a 2x2 editor grid. Patient Sensor is headless. Desktop VS
-Code mode packages/installs the bundled device extension using Node.js/npx and
+Code mode packages/installs the bundled device extension using Node.js/npm and
 the `code` CLI; `--web` opens ordinary browser tabs without those dependencies.
 Add `--secure` only after generating the
 security artifacts described in the [top-level setup guide](../README.md).

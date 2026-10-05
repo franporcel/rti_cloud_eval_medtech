@@ -71,11 +71,11 @@ elif [[ "${launch_args[0]}" == --vscode ]]; then
     echo "error: VS Code CLI not found; install it or run with --web." >&2
     exit 1
   fi
-  if ! command -v npx >/dev/null 2>&1; then
-    echo "error: Node.js/npx is required to package the device-grid extension." >&2
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "error: Node.js/npm is required to package the device-grid extension." >&2
     exit 1
   fi
-  (cd "$REPO_DIR/vscode-extension" && npx --yes @vscode/vsce package --allow-missing-repository --skip-license &&
+  (cd "$REPO_DIR/vscode-extension" && npm ci --ignore-scripts --no-audit --no-fund && npm run package &&
     "$code_cli" --install-extension "$(pwd)/medtech-web-tabs-0.1.0.vsix" --force)
   "$code_cli" "$ROOT_DIR"
 fi

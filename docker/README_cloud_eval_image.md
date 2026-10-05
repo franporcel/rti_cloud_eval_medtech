@@ -10,16 +10,120 @@ always uses port **8080**.
 ## What is preserved here
 
 - `Dockerfile`: base image, OS dependencies, virtual environment, and runtime defaults.
-- `requirements.txt`: pinned Python versions for the web-only Module 01 apps.
+- `requirements.txt`: direct cloud Python pins; `requirements.lock`: full hash-checked closure.
 - `baseline.json`: original archive checksum, image identities, source revisions,
   observed APT versions, and the working runtime/volume configuration.
-- `.dockerignore`: only the Dockerfile and requirements enter the build context.
+- `.dockerignore`: only the Dockerfile and dependency inputs enter the build context.
 - This runbook: clean installation, acceptance checks, backups, and recovery.
 
 The historical `../cloud_eval_image` directory is no longer the source of truth.
 Keep future image changes here and commit/push them with the tutorial changes.
 The current development volume is `medical-playground-cloud-test-config`; do not
 remove it when performing a clean-install test.
+
+### Reproducible Dependencies (2026-10-05)
+
+The recipe uses the licensed base by digest, Ubuntu snapshot
+`20261001T000000Z`, and a Python lock generated on Linux amd64 with Python 3.12
+and `pip-tools==7.5.1`. `pip install --require-hashes --only-binary=:all:`
+checks downloaded wheels; `pip check` validates the installed dependency graph.
+The three locked PyPI packages currently have no further runtime dependencies.
+The licensed `rti.connext==7.7.0` package is inherited from the immutable base,
+not downloaded from PyPI; the image build checks its version. Developer/test
+tools are not part of this runtime lock.
+
+The supported cloud combination is Ubuntu 24.04, Linux amd64, Connext Professional
+and Python API 7.7.0, `x64Linux4gcc8.5.0` SDK libraries, GCC 13.3.0, Python 3.12.3,
+and CMake 3.28.3. The SDK architecture name is an ABI target, not the installed
+compiler version. Node 22.21.1 is supplied by code-server. Native macOS/Windows
+and other Python/SDK combinations are not covered by the cloud lock or Linux
+acceptance run. Desktop extension packaging requires Node >= 22 and npm with
+lockfile v3 support; the exact host versions used for validation are recorded
+with the acceptance results below.
+
+CMake pins RTI utilities to `2c4b3efef3ed87135565f5d9493303938a76da31`.
+Review covered that commit's Python generation/version guard in
+`ConnextDdsCodegen.cmake`, followed by clean Linux builds and regenerated types.
+`nlohmann/json` 3.12.0 is downloaded from its release archive with SHA-256
+`4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187`.
+Both C++ web applications link its interface target; replacing the handwritten
+JSON handlers remains cleanup Step 5. Incremental CMake setup does not update
+the utilities from a branch. Initial builds require network access for these
+fixed sources; subsequent setup can use the populated dependency cache offline.
+
+Desktop VSIX packaging uses `@vscode/vsce==3.6.2` and the committed npm lock
+with transitive versions and integrity hashes, installed with `npm ci`.
+Cloud startup copies the extension's three runtime files and installs no npm
+or Python packages. Desktop setup pins `argcomplete==3.7.2` and selects only the
+local licensed `rti.connext.activated==7.7.0` wheel with `--no-index`.
+
+For an intentional Python update, edit `requirements.txt`, then regenerate
+inside this Linux image with a temporary tooling venv:
+
+```bash
+python3 -m venv /tmp/medtech-lock-tools
+/tmp/medtech-lock-tools/bin/pip install pip-tools==7.5.1
+cd /path/to/recipe/docker
+/tmp/medtech-lock-tools/bin/pip-compile --generate-hashes --allow-unsafe \
+  --strip-extras --no-emit-index-url --no-emit-trusted-host \
+  requirements.txt --output-file requirements.lock
+```
+
+For a packaging update, edit the exact devDependency and regenerate
+`vscode-extension/package-lock.json` with `npm install --package-lock-only
+--ignore-scripts`, then validate `npm ci --ignore-scripts` and `npm run package`.
+Review lock changes and rerun the Docker acceptance checks before publication.
+The temporary lock-generation toolchain itself is not shipped in the image.
+
+These controls reproduce dependency resolution, not byte-identical builds:
+timestamps, generated code, build metadata and Docker attestations can differ.
+Snapshot/package availability is still required. Keep exported images and
+checksums for exact binary recovery. This dependency image does not embed source.
+The parent gitlink selects published submodule commit
+`662e26e797a203de5048592669f9492b13d3d7ce` on `web-based-tutorial-apps`, including
+the dependency pins and displayed-log whitespace fix. Live workspace Git metadata
+is deliberately unchanged by publication.
+
+Validation built `medical-playground:medtech-deps-locked` without Docker layer
+cache and tested it in a disposable container: clean Linux build, regenerated
+Python types, fresh security artifacts, secure/nonsecure five-app acceptance
+without a display, 100 retained Python tests, and 26 JavaScript tests passed.
+The full Python suite used `DISPLAY=:99` only to bypass legacy skip guards;
+no display server was used. A second cloud setup succeeded with networking
+detached and the utilities SHA unchanged. The SDK logged a hostname-resolution
+warning offline and existing interface-tracker shutdown diagnostics after tests.
+Neither affected the results. Host VSIX packaging passed with Node 25.9.0 and
+npm 11.12.1. The image was subsequently deployed with user authorization as
+recorded below. Image identity is recorded in `baseline.json`.
+
+### Live Dependency Deployment (2026-10-05)
+
+The current `medical-playground` container runs
+`medical-playground:medtech-deps-locked`. Original runtime settings, environment
+values, localhost port 8080, tmpfs and the existing persistent volume were
+preserved and verified. Only Step 2 source/dependency files were copied with
+`abc:abc` ownership; live QoS and participant XML, security artifacts, and Git
+metadata were preserved. Source changes are published at the revision above;
+publication does not change the live workspace's historical Git metadata.
+
+A clean live Linux build regenerated both Python type modules and all three
+C++ binaries. Dependency checks, nine launcher tests, both headless five-app
+acceptance modes and all 26 JavaScript tests passed. The actual cloud launcher
+and browser IDE passed: all four device tabs in the intended 2x2 grid, all four
+APIs responding, all devices ON, fresh patient data, and nonblank arm/waveforms.
+The nonsecure demo is left running, supervisor PID 2324, log
+`/tmp/medtech-digital-or.M2j0Rg`.
+
+Verified workspace/extension backup:
+`/config/medtech-deployment-backups/deps-locked-20261005/pre-deploy.tar.gz`.
+SHA-256: `030a36f15c90f793c92cc314f417200dacdfd30145ad2ea0ee924e4345e48d10`.
+The previous container is retained **stopped** as
+`medical-playground-pre-deps-locked-20261005`. It shares the volume: never run
+both containers together. Image rollback alone does not undo source changes;
+restore the verified backup to a separate volume for exact workspace rollback.
+The prior build and generated types are retained alongside the backup. Runtime
+`/tmp` remains `noexec`; temporary test venvs must use `python -m pip` rather
+than executing their `pip` entrypoint directly.
 
 ### Device-grid correction (2026-10-02)
 
@@ -40,7 +144,7 @@ extension, operational governance, trusted CAs, secure-log reader, and test
 identities are retained. Retired service/WAN profiles, identities, NAT tooling,
 and dedicated images have been removed.
 
-This parent revision pins the published cleanup commit
+The Module 01 cleanup was published as
 `c3bdceba4455ff4439396a046e90b60a7b63e1dd` on `web-based-tutorial-apps`.
 
 The revised dependency recipe was built as `medical-playground:medtech-module01`
@@ -100,8 +204,8 @@ separate volume for an exact workspace rollback.
 
 - Docker Engine or Docker Desktop running Linux containers. On Apple Silicon,
   enable support for `linux/amd64` images; the Connext binaries are x86-64.
-- Git, access to the private Bitbucket repository below, and access to its GitHub
-  submodule. Authenticate through your normal Git credential setup.
+- Git and access to the public GitHub parent repository and its submodule.
+  Authenticate through your normal Git credential setup when needed.
 - Internet access for Ubuntu packages, Python packages, and the first CMake build.
 - Authorized access to the original Playground archive and a valid Connext 7.7
   license for the deployment. An SDK import check alone does not validate a license.
@@ -199,16 +303,13 @@ docker build --no-cache --platform linux/amd64 \
 ```
 
 The base image must report `linux/amd64`, with the identity in `baseline.json`.
-If the archive loads under a different tag, use its actual tag as
-`--build-arg PLAYGROUND_BASE=<loaded-tag>` when building; do not replace it with an
-unrelated image. On Linux hosts without `shasum`, use `sha256sum -c -` for the same
-checksum check.
-
-Python versions are pinned, but Ubuntu repositories, transitive system packages,
-and package availability can change. The observed APT versions are an audit record,
-not a frozen repository. Rebuilding also produces a different image ID than the
-historical image in `baseline.json`. For exact binary recovery, keep an exported
-derived image and its checksum in authorized storage, as described below.
+The default build uses the digest, not the tag. If the archive loads without a
+usable digest reference, verify the image ID against `baseline.json` and pass
+`--build-arg PLAYGROUND_BASE=sha256:abb72066172c1b58fdb9b3592d6780025c1c22833e0b327d7a3025c2f34c5752`.
+Do not substitute a moving tag or unrelated image. On Linux hosts without
+`shasum`, use `sha256sum -c -` for the same checksum check. Historical observed
+APT versions below are an audit record; the current recipe uses the snapshot
+described above. Rebuilding need not produce a historical image ID.
 
 ## 2. Create a fresh container and volume
 
@@ -258,8 +359,8 @@ apps. Run from this runbook's `docker/` directory:
 
 ```bash
 REVIEWED_PARENT_REVISION=$(git -C .. rev-parse HEAD)
-git clone --branch develop \
-  https://bitbucket.rti.com/scm/~fporcel/cloud_eval_medical.git \
+git clone --branch main \
+  https://github.com/franporcel/rti_cloud_eval_medtech.git \
   cloud_eval_medical-clean
 git -C cloud_eval_medical-clean checkout --detach \
   "$REVIEWED_PARENT_REVISION"
@@ -271,8 +372,15 @@ docker cp cloud_eval_medical-clean/. medical-playground:/config/workspace/
 docker exec --user root medical-playground chown -R 911:1001 /config/workspace
 ```
 
-The `medtech-reference-architecture` submodule revision should be
-`e072dfd2197e5fe8155ff06025233dd02f7c1618`, without a leading `+` or `-`.
+The submodule revision must match the reviewed parent's gitlink, without a
+leading `+` or `-` in `git submodule status`. Verify without copying an old SHA:
+
+```bash
+EXPECTED_MEDTECH=$(git -C cloud_eval_medical-clean ls-tree HEAD \
+  medtech-reference-architecture | awk '{print $3}')
+test "$(git -C cloud_eval_medical-clean/medtech-reference-architecture rev-parse HEAD)" \
+  = "$EXPECTED_MEDTECH"
+```
 Record `REVIEWED_PARENT_REVISION` with the image build so later clones reproduce
 the same source rather than following a moving branch tip. A future reviewed
 parent revision may intentionally select a different submodule commit.
