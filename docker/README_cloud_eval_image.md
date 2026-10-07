@@ -41,15 +41,29 @@ acceptance run. Desktop extension packaging requires Node >= 22 and npm with
 lockfile v3 support; the exact host versions used for validation are recorded
 with the acceptance results below.
 
-CMake pins RTI utilities to `2c4b3efef3ed87135565f5d9493303938a76da31`.
-Review covered that commit's Python generation/version guard in
-`ConnextDdsCodegen.cmake`, followed by clean Linux builds and regenerated types.
+CMake uses the RTI utilities bundled in `$NDDSHOME/resource/cmake`, or in
+`<CONNEXTDDS_DIR>/resource/cmake` when that CMake cache variable is supplied.
+The cloud image already contains these utilities in its Connext 7.7.0 SDK;
+no separate RTI utilities download is required. An isolated Linux build with
+the bundled utilities passed. On 2026-10-06, all 139 local tracked source files
+were synchronized to the running `medical-playground` workspace and verified
+for content, executable permissions, and `abc` ownership. The deployed build,
+43 Python tests (including secure/nonsecure five-app acceptance), 26 JavaScript
+tests, and normal cloud startup passed; three legacy display tests were skipped.
+All four live APIs returned HTTP 200, devices were ON, and patient data was fresh.
+The image, runtime dependencies, credentials, and Git metadata were unchanged.
 `nlohmann/json` 3.12.0 is downloaded from its release archive with SHA-256
 `4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187`.
 Both C++ web applications link its interface target; replacing the handwritten
-JSON handlers remains cleanup Step 5. Incremental CMake setup does not update
-the utilities from a branch. Initial builds require network access for these
-fixed sources; subsequent setup can use the populated dependency cache offline.
+JSON handlers remains cleanup Step 5. Initial builds require network access for
+this fixed JSON source; subsequent setup can use the populated dependency cache
+offline. Earlier acceptance records describe the previously deployed
+GitHub-fetched utilities; `baseline.json` records this source-only deployment
+separately from the historical dependency-image validation.
+SDK utilities source is published as
+`0f46d5487544f112c57a6ed5c0874a486403e482` on `web-based-tutorial-apps`,
+selected by the parent gitlink. Publication documentation updates are host-only;
+the live workspace documentation and Git metadata were not changed by the push.
 
 Desktop VSIX packaging uses `@vscode/vsce==3.6.2` and the committed npm lock
 with transitive versions and integrity hashes, installed with `npm ci`.
@@ -103,7 +117,7 @@ dependency image remains `medical-playground:medtech-deps-locked`; application
 source lives in the persistent `/config` workspace, not image layers, so no
 image rebuild was required. These source changes are published as
 `3ee21c8ec5457477ccdf1d800ae9dc983e707777` on `web-based-tutorial-apps`;
-the parent gitlink selects that revision. Live Git metadata, runtime settings,
+the parent gitlink selected that revision at publication. Live Git metadata, runtime settings,
 dependencies, QoS, participant XML, and security artifacts were preserved.
 
 Both runner launch paths now clean up partial startup, callback failures,

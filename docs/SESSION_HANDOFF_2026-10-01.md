@@ -1,5 +1,28 @@
 # Cloud evaluation session handoff
 
+## Latest Deployment: SDK CMake Utilities (2026-10-06)
+
+- CMake now uses the Connext 7.7.0 SDK's `resource/cmake` utilities, selected
+  through `NDDSHOME` or the `CONNEXTDDS_DIR` CMake cache variable. The RTI
+  utilities GitHub download is removed; the JSON dependency download remains.
+- All 139 local tracked files were synchronized to `medical-playground` and
+  verified for content, executable permissions, and `abc` ownership. Container
+  Git metadata, credentials, generated files, machine settings, image, and
+  runtime dependencies were preserved. SDK utilities source is published as
+  `0f46d5487544f112c57a6ed5c0874a486403e482` on `web-based-tutorial-apps`;
+  the parent gitlink selects that revision. Publication updates are host-only;
+  the live workspace retains its pre-publication documentation and Git metadata.
+- Backup: `/config/medtech-deployment-backups/sdk-utils-20261006.uEqT9S/pre-deploy.tar.gz`.
+  SHA-256: `71e761ffcbda1b778c8a03670e58c50bd4cf4d1d9c1269943f7dee704f425992`.
+- Deployed build, 43 Python tests including secure/nonsecure five-app acceptance,
+  and 26 JavaScript tests passed. Three legacy display tests were skipped.
+- Normal `launch_all.sh --cloud` startup passed. Demo left running with
+  supervisor PID `28607`, log `/tmp/medtech-digital-or.7egKVm`; all four APIs
+  returned HTTP 200, DDS devices reported ON, and patient data was fresh.
+  Editor-tab rendering was not rechecked in the browser during this deployment.
+- The launcher still requires Git metadata; removing that dependency is a
+  separate, not-yet-implemented cloud integration change.
+
 Latest source update: 2026-10-02, corrected scope: restore the device extension
 and 2x2 editor grid; remove only the tutorial panel. This opening section
 supersedes every historical workflow below.

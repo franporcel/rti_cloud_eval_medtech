@@ -1,5 +1,17 @@
 {
   "recorded_on": "2026-10-05",
+  "sdk_cmake_source_deployment": {
+    "deployed_on": "2026-10-06",
+    "container": "medical-playground",
+    "utilities": "Connext 7.7.0 SDK resource/cmake; no RTI utilities FetchContent",
+    "source_parity": "139 tracked local files verified for content, executable permissions, and abc ownership; runtime/generated files and Git metadata preserved",
+    "backup": "/config/medtech-deployment-backups/sdk-utils-20261006.uEqT9S/pre-deploy.tar.gz",
+    "backup_sha256": "71e761ffcbda1b778c8a03670e58c50bd4cf4d1d9c1269943f7dee704f425992",
+    "validation": "Deployed build; 43 Python tests including secure/nonsecure five-app acceptance; 26 JavaScript tests; normal cloud startup; all four APIs HTTP 200, devices ON, patient data fresh. Three legacy display tests skipped.",
+    "scope": "Source-only deployment; image, runtime dependencies, credentials, and live Git metadata unchanged. SDK utilities source published as 0f46d5487544f112c57a6ed5c0874a486403e482 on web-based-tutorial-apps; the parent gitlink selects that revision.",
+    "supervisor_pid_at_validation": 28607,
+    "demo_log": "/tmp/medtech-digital-or.7egKVm"
+  },
   "platform": "linux/amd64",
   "base_archive": {
     "name": "playground-20260709a.tar.gz",
@@ -56,7 +68,7 @@
     "container_name": "medical-playground",
     "image_tag": "medical-playground:medtech-deps-locked",
     "image_id": "sha256:04ea4968d4fe93fb4e20f0001cb3035da95a9dc014373a7bec98fefe109ef8c3",
-    "source_status": "Step 3 launcher source and regression tests deployed to the persistent workspace with abc:abc ownership, then published as 3ee21c8ec5457477ccdf1d800ae9dc983e707777 on web-based-tutorial-apps; the parent gitlink selects that revision. Image layers and live Git metadata unchanged.",
+    "source_status": "Step 3 launcher source and regression tests deployed to the persistent workspace with abc:abc ownership, then published as 3ee21c8ec5457477ccdf1d800ae9dc983e707777 on web-based-tutorial-apps; the parent gitlink selected that revision at publication. Image layers and live Git metadata unchanged.",
     "behavior": "Single and multi-launch clean up all owned children on partial spawn, callback, interrupt, or wait failure and re-raise the original exception. Shared one-second SIGTERM grace, SIGKILL escalation, and bounded wait after kill; cleanup failures do not skip remaining children or mask the launch error. CLI interrupt exit remains successful.",
     "validation": "Clean disposable Linux build and security setup; 115 Python tests and 26 JavaScript tests pass. Live 26 focused checks include secure/nonsecure headless five-app acceptance. Real cloud launch and supervisor SIGTERM shutdown verified all six owned PIDs reaped, APIs stopped and tabs closed while unrelated DDS inspectors survived; final relaunch verified all devices ON, fresh patient data and nonblank canvases.",
     "test_environment": "Focused acceptance without DISPLAY; full suite DISPLAY=:99 bypasses legacy skip guards without a display server. Test tooling isolated from runtime venv; existing SDK interface-tracker shutdown diagnostics persist. Runner lint passes; pre-existing long lines in launch.py/tests/test_launch.py remain.",
@@ -95,7 +107,7 @@
     "pre_upgrade_volume_backup": "/Users/fran/code/repos/cloud_eval_backup/pre-web-2026-10-01T23-04-54-527Z/docker-config.tar.gz",
     "pre_upgrade_volume_backup_sha256": "66067a12abf46c6092455f6b71eab5be24c390bc3f763c04471d0a3e41ee34c4"
   },
-  "medtech_revision": "3ee21c8ec5457477ccdf1d800ae9dc983e707777",
+  "medtech_revision": "0f46d5487544f112c57a6ed5c0874a486403e482",
   "module01_cleanup_validation": {
     "recorded_on": "2026-10-05",
     "image_tag": "medical-playground:medtech-module01",
